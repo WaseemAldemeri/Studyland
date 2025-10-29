@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Models;
+﻿using Domain;
+using Microsoft.EntityFrameworkCore;
 
-namespace Database;
+namespace Persistence;
 
 public class AppDbContext(DbContextOptions options) : DbContext(options)
 {

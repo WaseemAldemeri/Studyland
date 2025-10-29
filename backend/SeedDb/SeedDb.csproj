@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="../Persistence/Persistence.csproj" />
   </ItemGroup>
 
 </Project>

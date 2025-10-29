@@ -1,8 +1,8 @@
 ﻿using Dapper;
-using Database;
+using Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Models;
+using Domain;
 using OldModels;
 
 Console.WriteLine("Starting data migration");

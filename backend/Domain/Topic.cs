@@ -1,4 +1,4 @@
-namespace Models;
+namespace Domain;
 
 public class Topic
 {

@@ -1,5 +1,8 @@
-using Database;
+using Application.Users.Queries;
+using Persistence;
 using Microsoft.EntityFrameworkCore;
+using Application.Core;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,10 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddCors();
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining<GetUsersList>());
+builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
 
 var app = builder.Build();
 
@@ -24,6 +31,8 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 // app.UseAuthorization();
+
+app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000"));
 
 app.MapControllers();
 
@@ -40,5 +49,18 @@ catch (Exception ex)
     var logger = services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "An Error occured during database migration.");
 }
+
+try
+{
+    var mapper = services.GetRequiredService<IMapper>();
+    // this will throw an exception if any mappings are invalid.
+    mapper.ConfigurationProvider.AssertConfigurationIsValid();
+}
+catch (Exception ex)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An Error occured while Asserting Mappings.");
+}
+
 
 app.Run();
