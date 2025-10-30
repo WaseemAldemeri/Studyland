@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type CreateSessionDto = {
     startedAt: string;
-    durationMS: string;
+    durationMs: number;
     topicId: string;
 };
 

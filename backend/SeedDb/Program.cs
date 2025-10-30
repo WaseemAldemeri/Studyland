@@ -117,7 +117,7 @@ var newSessions = oldSessions.Select(session =>
     {
         StartedAt = DateTimeOffset.FromUnixTimeMilliseconds(session.date),
         // make sure that i stored in seconds in discord bot script
-        DurationMS = TimeSpan.FromSeconds(session.duration),
+        Duration = TimeSpan.FromSeconds(session.duration),
         TopicId = corrospondingTopic.Id,
         UserId = corrospondingUser.Id,
     };

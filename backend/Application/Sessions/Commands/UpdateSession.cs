@@ -12,7 +12,7 @@ public class UpdateSession
     {
         public required string Id { get; set; }
         public DateTimeOffset? StartedAt { get; set; }
-        public TimeSpan? DurationMS { get; set; }
+        public TimeSpan? Duration { get; set; }
         public string? TopicId { get; set; }
     }
 

@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type UpdateSessionDto = {
     startedAt?: string | null;
-    durationMS?: string | null;
+    durationMs?: number | null;
     topicId?: string | null;
 };
 

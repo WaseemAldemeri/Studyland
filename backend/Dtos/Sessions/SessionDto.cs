@@ -7,7 +7,8 @@ public class SessionDto
 {
     public required string Id { get; set; }
     public required DateTimeOffset StartedAt { get; set; }
-    public required TimeSpan DurationMS { get; set; }
+    public required long DurationMs { get; set; }
+    public required TimeSpan Duration { get; set; }
     public required TopicDto Topic { get; set; }
     public required UserDto User { get; set; }
 }

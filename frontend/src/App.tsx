@@ -35,7 +35,8 @@ function App() {
             <ul>
               <li>Session: {s.id}</li>
               <li>Started at: {s.startedAt}</li>
-              <li>duration: {s.durationMS}</li>
+              <li>duration: {s.duration}</li>
+              <li>durationMs: {s.durationMs}</li>
               <li>topic: {s.topic.title}</li>
               <li>username: {s.user.displayName}</li>
             </ul>

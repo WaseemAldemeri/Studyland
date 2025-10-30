@@ -7,7 +7,8 @@ import type { UserDto } from './UserDto';
 export type SessionDto = {
     id: string;
     startedAt: string;
-    durationMS: string;
+    durationMs: number;
+    duration: string;
     topic: TopicDto;
     user: UserDto;
 };
