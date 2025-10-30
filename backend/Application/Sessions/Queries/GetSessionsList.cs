@@ -1,9 +1,9 @@
 using Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using API.Features.Sessions;
 using AutoMapper.QueryableExtensions;
 using AutoMapper;
+using Dtos.Sessions;
 
 namespace Application.Sessions.Queries;
 

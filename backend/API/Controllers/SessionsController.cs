@@ -1,4 +1,3 @@
-using API.Features.Sessions;
 using Application.Sessions.Commands;
 using Application.Sessions.Queries;
 using AutoMapper;
@@ -10,13 +9,13 @@ namespace API.Controllers;
 
 public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiController
 {
-    [HttpGet]
-    public async Task<ActionResult<SessionDto>> GetSessions()
+    [HttpGet(Name = "GetSessionsList")]
+    public async Task<ActionResult<List<SessionDto>>> GetSessions()
     {
         return Ok(await mediator.Send(new GetSessionsList.Query()));
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateSession")]
     public async Task<ActionResult<string>> CreateSession(CreateSessionDto createSessionDto)
     {
         var command = mapper.Map<CreateSession.Command>(createSessionDto);
@@ -25,7 +24,7 @@ public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiCon
         return Ok(await mediator.Send(command));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}", Name = "DeleteSession")]
     public async Task<ActionResult> DeleteSession(string id)
     {
         await mediator.Send(new DeleteSession.Command(id));
@@ -33,7 +32,7 @@ public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiCon
         return Ok();
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id}", Name = "UpdateSession")]
     public async Task<ActionResult> UpdateSession(string id, UpdateSessionDto updateSessionDto)
     {
         var command = mapper.Map<UpdateSession.Command>(updateSessionDto);

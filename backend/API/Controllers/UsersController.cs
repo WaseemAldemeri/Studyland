@@ -9,14 +9,14 @@ namespace API.Controllers;
 public class UsersController(IMediator mediator) : BaseApiController
 {
 
-    [HttpGet]
+    [HttpGet(Name = "GetUsers")]
     public async Task<ActionResult<List<UserDto>>> GetUsers()
     {
         var users = await mediator.Send(new GetUsersList.Query());
         return Ok(users);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetUserById")]
     public async Task<ActionResult<UserDto>> GetUser(string id)
     {
         var user = await mediator.Send(new GetUserById.Query(id));

@@ -1,4 +1,3 @@
-using API.Features.Sessions;
 using Application.Sessions.Commands;
 using AutoMapper;
 using Domain;
