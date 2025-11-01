@@ -1,4 +1,15 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+
+  --color-primary: hsl(262.1 83.3% 57.8%);       /* hsl(262.1, 83.3%, 57.8%) - a nice medium purple */
+  --color-primary-foreground: hsl(210 20% 98%); /* hsl(210, 20%, 98%) - an off-white for text */
+
+  --color-secondary: hsl(263.4 90.2% 95%);       /* hsl(263.4, 90.2%, 95%) - a very light lavender */
+  --color-secondary-foreground: hsl(263.4 90.2% 20%); /* hsl(263.4, 90.2%, 20%) - a dark purple for text */
+
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(262.1 83.3% 57.8%);
+}

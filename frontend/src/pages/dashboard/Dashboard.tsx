@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { Button } from "./components/ui/button";
 import {
-  SessionDto,
   SessionsService,
   UsersService,
-  type UserDto,
-} from "./api/generated";
+  type SessionDto,
+} from "../../api/generated";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
-function App() {
-  const [users, setUsers] = useState<UserDto[]>();
+function Dashboard() {
   const [sessions, setSessions] = useState<SessionDto[]>();
+  
+  const {data: users, isLoading: usersLoading} = useQuery({queryKey: ["users"], queryFn: UsersService.getUsers});
 
   useEffect(() => {
-    UsersService.getUsers().then(setUsers);
     SessionsService.getSessionsList().then((data) =>
       setSessions(data.slice(0, 10))
     );
@@ -21,6 +21,7 @@ function App() {
   return (
     <>
       <h1 className="bg-purple-300 text-2xl text-center">Studyland</h1>
+      {usersLoading && <div>Users are loading...</div>}
       <ol className="ml-5">
         {users?.map((u) => (
           <li key={u.id} className="font-bold my-2">
@@ -52,4 +53,5 @@ function App() {
   );
 }
 
-export default App;
+export default Dashboard;
+
