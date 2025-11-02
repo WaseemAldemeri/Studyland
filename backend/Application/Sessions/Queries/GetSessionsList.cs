@@ -16,7 +16,7 @@ public class GetSessionsList
     {
         public async Task<List<SessionDto>> Handle(Query request, CancellationToken cancellationToken)
         {
-            return await context.Sessions.ProjectTo<SessionDto>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            return await context.Sessions.Take(10).ProjectTo<SessionDto>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
         }
     }
 }

@@ -1,7 +1,7 @@
-import NavBar from "./NavBar";
+import NavBar from "./layout/NavBar";
 import { Outlet } from "react-router";
 
-export default function Layout() {
+export default function MainLayout() {
   return (
     <div className="font-mono antialiased">
       <NavBar />
