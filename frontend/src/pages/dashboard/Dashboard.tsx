@@ -19,7 +19,7 @@ export default function Dashboard() {
 
       {/* --- Right Panel: My Personal Desk --- */}
       <div className="w-1/4 bg-secondary/50 rounded-lg p-4">
-      <PersonalDeskPanel />
+        <PersonalDeskPanel />
       </div>
     </div>
   );
