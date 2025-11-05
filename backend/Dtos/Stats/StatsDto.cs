@@ -15,14 +15,14 @@ public class StatsDto
     public class DailyActivity
     {
         public required DateOnly Date { get; set; }
-        public required TimeSpan TotalDuration { get; set; }
+        public required double TotalHours { get; set; }
         public required UserDto User { get; set; }
     }
 
     public class UserKpiStats
     {
-        public required TimeSpan TotalStudyTime { get; set; }
-        public required TimeSpan AveregeSessionDuration { get; set; }
+        public required double TotalStudyTimeHours { get; set; }
+        public required double AveregeSessionDurationMinutes { get; set; }
         public required int DaysStudied { get; set; }
         public required UserDto User { get; set; }
     }
@@ -30,7 +30,7 @@ public class StatsDto
     public class UserTopicBreakDown
     {
         public required TopicDto Topic { get; set; }
-        public required TimeSpan TotalStudyTime { get; set; }
+        public required double TotalStudyTimeHours { get; set; }
         public required UserDto User { get; set; }
     }
 }

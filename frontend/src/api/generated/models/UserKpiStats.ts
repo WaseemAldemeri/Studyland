@@ -4,8 +4,8 @@
 /* eslint-disable */
 import type { UserDto } from './UserDto';
 export type UserKpiStats = {
-    totalStudyTime: string;
-    averegeSessionDuration: string;
+    totalStudyTimeHours: number;
+    averegeSessionDurationMinutes: number;
     daysStudied: number;
     user: UserDto;
 };

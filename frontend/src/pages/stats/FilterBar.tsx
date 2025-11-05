@@ -82,6 +82,7 @@ export function FilterBar({
               <Calendar
                 mode="single"
                 selected={startDate}
+                defaultMonth={startDate}
                 onSelect={(date) => onDateChange({ startDate: date })}
               />
             </PopoverContent>
@@ -108,6 +109,7 @@ export function FilterBar({
               <Calendar
                 mode="single"
                 selected={endDate}
+                defaultMonth={endDate}
                 onSelect={(date) => onDateChange({ endDate: date })}
               />
             </PopoverContent>

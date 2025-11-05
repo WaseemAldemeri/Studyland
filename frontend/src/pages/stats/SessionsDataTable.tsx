@@ -1,8 +1,8 @@
 // src/components/stats/SessionsDataTable.tsx
 
-import { useState } from "react"; // Added for sorting state
+import { useState, type Dispatch, type SetStateAction } from "react"; // Added for sorting state
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SessionsService, type SessionDto, type UserDto } from "@/api/generated";
+import { SessionsService, type SessionDto } from "@/api/generated";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -28,15 +28,26 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  CalendarIcon,
 } from "lucide-react"; // Added ArrowUpDown icon
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 interface SessionsDataTableProps {
   selectedDay: string | null;
-  allUsers: UserDto[]; // For the dropdown
-  currentUserId: string; // To check for read-only mode
+  handleDaySelect: (date: string) => void;
 }
 
-export function SessionsDataTable({ selectedDay }: SessionsDataTableProps) {
+export function SessionsDataTable({
+  selectedDay,
+  handleDaySelect,
+}: SessionsDataTableProps) {
   const queryClient = useQueryClient();
 
   // --- NEW: State to manage sorting ---
@@ -178,6 +189,44 @@ export function SessionsDataTable({ selectedDay }: SessionsDataTableProps) {
             ? `Sessions for ${selectedDay}`
             : "Select a day to see details"}
         </h2>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !selectedDay && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDay ? (
+                  format(selectedDay, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="bg-white w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={new Date(selectedDay!)}
+                defaultMonth={new Date(selectedDay!)}
+                onSelect={(date) =>
+                  handleDaySelect(date?.toLocaleDateString() as string)
+                }
+              />
+            </PopoverContent>
+          </Popover>
+          {selectedDay !== new Date().toLocaleDateString() && (
+            <Button
+              onClick={() => handleDaySelect(new Date().toLocaleDateString())}
+              className="text-xs"
+            >
+              Today
+            </Button>
+          )}
+        </div>
         <Button
           disabled={!selectedDay}
           onClick={() => alert("Opening Add Session modal...")}
@@ -187,53 +236,58 @@ export function SessionsDataTable({ selectedDay }: SessionsDataTableProps) {
         </Button>
       </div>
 
-      {isLoading && <div>Loading session details...</div>}
-
-      {selectedDay && !isLoading && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Loading session details...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
                       {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+                        cell.column.columnDef.cell,
+                        cell.getContext()
                       )}
-                    </TableHead>
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No sessions found for this day.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No sessions found for this day.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

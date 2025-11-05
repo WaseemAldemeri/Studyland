@@ -7,6 +7,13 @@ using OldModels;
 
 Console.WriteLine("Starting data migration");
 
+Dictionary<string, string> DiscordToNameMap = new()
+{
+    {"393051104478232596", "Waseem"},
+    {"1202670705720954901", "Leen"},
+    {"705060284875669626", "Naseem"},
+};
+
 const string newConnectionString = "Server=localhost,1433;Database=StudyLandDb;User Id=sa;Password=yourStrong(!)Password123;TrustServerCertificate=true";
 const string oldConnectionString = "Data Source=./nerds.db";
 
@@ -83,7 +90,7 @@ Console.WriteLine("\nStep 3: Transforming and seeding data...");
 var newUsers = oldUsers.Select(user => new User()
 {
     DiscordId = user.id,
-    DisplayName = $"user_{user.id}", // Better temp name
+    DisplayName = DiscordToNameMap.FirstOrDefault(x => x.Key == user.id).Value ?? user.id, // Better temp name
     DateJoined = DateTimeOffset.FromUnixTimeMilliseconds(user.date)
 }).ToList();
 

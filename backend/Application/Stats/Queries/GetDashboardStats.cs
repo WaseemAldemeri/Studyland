@@ -96,7 +96,7 @@ public class GetDashboardStats
                 .Select(g => new StatsDto.UserTopicBreakDown
                 {
                     Topic = mapper.Map<TopicDto>(g.Key.Topic),
-                    TotalStudyTime = TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks)),
+                    TotalStudyTimeHours = g.Sum(s => s.Duration.TotalHours),
                     User = mapper.Map<UserDto>(g.Key.User)
 
                 })
@@ -110,8 +110,8 @@ public class GetDashboardStats
                 .GroupBy(s => new { s.User })
                 .Select(g => new StatsDto.UserKpiStats
                 {
-                    AveregeSessionDuration = TimeSpan.FromTicks((long)g.Average(s => s.Duration.Ticks)),
-                    TotalStudyTime = TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks)),
+                    AveregeSessionDurationMinutes = (long)g.Average(s => s.Duration.TotalMinutes),
+                    TotalStudyTimeHours = (long)g.Sum(s => s.Duration.TotalHours),
                     User = mapper.Map<UserDto>(g.Key.User),
                     DaysStudied = g.DistinctBy(s => s.StartedAt.Date).Count(),
                 })
@@ -122,12 +122,12 @@ public class GetDashboardStats
         {
 
             return sessions
-                .GroupBy(s => new { s.StartedAt.Date, s.User })
+                .GroupBy(s => new { Date = DateOnly.FromDateTime(s.StartedAt.Date), s.User })
                 .Select(g => new StatsDto.DailyActivity()
                 {
-                    Date = DateOnly.FromDateTime(g.Key.Date),
+                    Date = g.Key.Date,
                     User = mapper.Map<UserDto>(g.Key.User),
-                    TotalDuration = TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks))
+                    TotalHours = g.Sum(s => s.Duration.TotalHours)
                 })
                 .OrderBy(x => x.Date)
                 .ToList();

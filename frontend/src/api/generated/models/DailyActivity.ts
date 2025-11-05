@@ -5,7 +5,7 @@
 import type { UserDto } from './UserDto';
 export type DailyActivity = {
     date: string;
-    totalDuration: string;
+    totalHours: number;
     user: UserDto;
 };
 

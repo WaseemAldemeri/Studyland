@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 // Make sure the paths are correct for your project structure
 import { StatsService, TopicsService, UsersService } from "@/api/generated";
 import { FilterBar } from "./FilterBar";
-import { Clock, TrendingUp, CalendarDays, BookHeart } from "lucide-react";
+import { Clock, TrendingUp, CalendarDays } from "lucide-react";
 import { StatCard } from "./StatCard";
 import { ActivityChart } from "./ActivityChart";
 import { BreakdownChart } from "./BreakDownChart";
@@ -17,11 +17,11 @@ import { SessionsDataTable } from "./SessionsDataTable";
 const getDefaultDateRange = () => {
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 360);
+  startDate.setDate(endDate.getDate() - 7);
   return { startDate, endDate };
 };
 
-const CURRENT_USER_ID = "223e568c-6e55-4561-a59e-83085a5c6d21";
+const CURRENT_USER_ID = "5e601154-573b-479b-a0f0-e722951f54ab";
 
 // --- Helper function to format TimeSpan strings ---
 function formatTimeSpan(timeSpanString: string): string {
@@ -42,7 +42,7 @@ export default function StatsPage() {
   const [dateRange, setDateRange] = useState(getDefaultDateRange());
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [selectedDay, setSelectedDay] = useState<string>(dateRange.endDate.toLocaleString());
+  const [selectedDay, setSelectedDay] = useState<string>(new Date().toLocaleDateString());
 
   const handleDaySelect = (date: string) => {
     setSelectedDay(date);
@@ -93,12 +93,12 @@ export default function StatsPage() {
   const kpiCardData = [
     {
       title: "Total Hours Studied",
-      value: myKpis ? formatTimeSpan(myKpis.totalStudyTime) : "...",
+      value: myKpis ? myKpis.totalStudyTimeHours + "H" : "...",
       icon: Clock,
     },
     {
       title: "Average Session",
-      value: myKpis ? formatTimeSpan(myKpis.averegeSessionDuration) : "...",
+      value: myKpis ? myKpis.averegeSessionDurationMinutes + "M" : "...",
       icon: TrendingUp,
     },
     {
@@ -160,7 +160,7 @@ export default function StatsPage() {
           <StatCard
             key={kpi.title}
             title={kpi.title}
-            value={kpi.value}
+            value={kpi.value.toLocaleString()}
             icon={kpi.icon}
             isLoading={statsLoading} // Pass the loading state to each card
           />
@@ -176,8 +176,6 @@ export default function StatsPage() {
           onDayClick={handleDaySelect}
         />
 
-        {/* Pie Chart placeholder remains for now */}
-
         <BreakdownChart
           userTopicBreakdowns={stats?.usersTopicBreakDowns ?? []}
           usersInQuery={usersInQuery}
@@ -185,7 +183,7 @@ export default function StatsPage() {
           currentUserId={CURRENT_USER_ID} // Pass the hardcoded current user ID
         />
       </div>
-      <SessionsDataTable selectedDay={selectedDay} />
+      <SessionsDataTable selectedDay={selectedDay} handleDaySelect={handleDaySelect} />
     </div>
   );
 }

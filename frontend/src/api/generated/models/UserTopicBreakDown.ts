@@ -6,7 +6,7 @@ import type { TopicDto } from './TopicDto';
 import type { UserDto } from './UserDto';
 export type UserTopicBreakDown = {
     topic: TopicDto;
-    totalStudyTime: string;
+    totalStudyTimeHours: number;
     user: UserDto;
 };
 

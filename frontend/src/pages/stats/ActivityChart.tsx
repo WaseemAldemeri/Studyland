@@ -31,15 +31,6 @@ interface ActivityChartProps {
 // A simple color palette for the users in the chart
 const USER_COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE"];
 
-// Helper to format TimeSpan string to hours
-const timeSpanToHours = (timeSpan: string): number => {
-  const parts = timeSpan.split(/[:.]/);
-  const hours = parseInt(parts[0], 10);
-  const minutes = parseInt(parts[1], 10);
-  const seconds = parseInt(parts[2], 10);
-  return hours + minutes / 60 + seconds / 3600;
-};
-
 export function ActivityChart({
   dailyActivities,
   isLoading,
@@ -67,12 +58,10 @@ export function ActivityChart({
       });
 
       if (!groupedData[dateLabel]) {
-        groupedData[dateLabel] = { date: dateLabel };
+        groupedData[dateLabel] = { date: dateLabel, rawDate: activity.date };
       }
 
-      groupedData[dateLabel][activity.user.displayName] = timeSpanToHours(
-        activity.totalDuration
-      );
+      groupedData[dateLabel][activity.user.displayName] = activity.totalHours;
     });
 
     return { chartData: Object.values(groupedData), userNames: users };
@@ -81,19 +70,32 @@ export function ActivityChart({
   const handleChartClick = (payload: MouseHandlerDataParam) => {
     // The payload contains information about the clicked bar.
     // 'activeLabel' holds the x-axis value (our formatted date string).
-    if (payload && payload.activeLabel) {
-      onDayClick(payload.activeLabel);
+    if (payload && payload.activeIndex) {
+      onDayClick(chartData[payload.activeIndex as number].rawDate as string);
     }
   };
 
-  if (isLoading) {
+  // if (isLoading) {
+  //   return (
+  //     <Card className="lg:col-span-2 h-96">
+  //       <CardHeader>
+  //         <CardTitle>Study Activity Over Time</CardTitle>
+  //       </CardHeader>
+  //       <CardContent className="flex items-center justify-center h-full text-muted-foreground">
+  //         Loading chart data...
+  //       </CardContent>
+  //     </Card>
+  //   );
+  // }
+
+  if (!isLoading && chartData.length === 0) {
     return (
       <Card className="lg:col-span-2 h-96">
         <CardHeader>
           <CardTitle>Study Activity Over Time</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-full text-muted-foreground">
-          Loading chart data...
+          User Didn't Study in the Selected Period
         </CardContent>
       </Card>
     );

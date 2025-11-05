@@ -9,11 +9,13 @@ namespace API.Controllers;
 
 public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiController
 {
+    public static Guid CurrentUserId { get; set; } = new ("5e601154-573b-479b-a0f0-e722951f54ab");
+
     [HttpGet(Name = "GetSessions")]
     public async Task<ActionResult<List<SessionDto>>> GetSessions([FromQuery] GetSessionsQueryDto queryDto)
     {
         var requestedDate = queryDto.Date.HasValue ? DateOnly.FromDateTime((DateTime)queryDto.Date) : DateOnly.FromDateTime(DateTime.UtcNow);
-        GetSessions.Query query = new() { Date = requestedDate };
+        GetSessions.Query query = new() { Date = requestedDate, UserId = CurrentUserId };
 
         return Ok(await mediator.Send(query));
     }
@@ -22,7 +24,7 @@ public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiCon
     public async Task<ActionResult<Guid>> CreateSession(CreateSessionDto createSessionDto)
     {
         var command = mapper.Map<CreateSession.Command>(createSessionDto);
-        command.UserId = new Guid("0fb74f54-6819-4dc3-93ba-b5d10a8d3a90");
+        command.UserId = CurrentUserId;
 
         return Ok(await mediator.Send(command));
     }
