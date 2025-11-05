@@ -3,6 +3,8 @@ using Persistence;
 using Microsoft.EntityFrameworkCore;
 using Application.Core;
 using AutoMapper;
+using FluentValidation;
+using Application.Stats.Queries;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +16,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors();
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining<GetUsersList>());
 builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
+builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator>();
 
 var app = builder.Build();
 

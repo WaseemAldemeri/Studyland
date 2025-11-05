@@ -10,13 +10,19 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class SessionsService {
     /**
+     * @param date
      * @returns SessionDto OK
      * @throws ApiError
      */
-    public static getSessionsList(): CancelablePromise<Array<SessionDto>> {
+    public static getSessions(
+        date?: string,
+    ): CancelablePromise<Array<SessionDto>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/Sessions',
+            query: {
+                'Date': date,
+            },
         });
     }
     /**

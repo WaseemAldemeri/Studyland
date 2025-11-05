@@ -6,8 +6,11 @@ namespace Dtos.Stats;
 public class StatsDto
 {
     public required List<DailyActivity> DailyActivities { get; set; }
-    public required KpiStats Kpis { get; set; }
-    public required List<TopicBreakDown> TopicBreakDowns { get; set; }
+    public required List<UserKpiStats> UsersKpis { get; set; }
+    public required List<UserTopicBreakDown> UsersTopicBreakDowns { get; set; }
+    public required DateOnly StartDate { get; set; }
+    public required DateOnly EndDate { get; set; }
+    public required int TotalDays { get; set; }
 
     public class DailyActivity
     {
@@ -16,20 +19,20 @@ public class StatsDto
         public required UserDto User { get; set; }
     }
 
-    public class KpiStats
+    public class UserKpiStats
     {
         public required TimeSpan TotalStudyTime { get; set; }
         public required TimeSpan AveregeSessionDuration { get; set; }
         public required int DaysStudied { get; set; }
-        public required int TotalDays { get; set; }
+        public required UserDto User { get; set; }
     }
 
-    public class TopicBreakDown
+    public class UserTopicBreakDown
     {
         public required TopicDto Topic { get; set; }
         public required TimeSpan TotalStudyTime { get; set; }
+        public required UserDto User { get; set; }
     }
-    
 }
 
 

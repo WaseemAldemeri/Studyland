@@ -8,17 +8,17 @@ namespace Application.Sessions.Commands;
 
 public class CreateSession
 {
-    public record Command() : IRequest<string>
+    public record Command() : IRequest<Guid>
     {
         public required DateTimeOffset StartedAt { get; set; }
         public required TimeSpan DurationMS { get; set; }
-        public required string UserId { get; set; }
-        public required string TopicId { get; set; }
+        public required Guid UserId { get; set; }
+        public required Guid TopicId { get; set; }
     }
 
-    public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command, string>
+    public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command, Guid>
     {
-        public async Task<string> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(Command request, CancellationToken cancellationToken)
         {
             if (!await context.Topics.AnyAsync(t => t.Id == request.TopicId, cancellationToken))
             {

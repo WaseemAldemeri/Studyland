@@ -2,7 +2,7 @@
 
 public class User
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public Guid Id { get; set; } = Guid.NewGuid();
     // a temp discord id just for migration purposes from discord
     public string? DiscordId { get; set; }
     public required string DisplayName { get; set; }

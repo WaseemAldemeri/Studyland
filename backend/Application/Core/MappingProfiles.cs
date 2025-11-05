@@ -1,8 +1,10 @@
 using Application.Sessions.Commands;
+using Application.Stats.Queries;
 using AutoMapper;
 using Domain;
 using Dtos.Awards;
 using Dtos.Sessions;
+using Dtos.Stats;
 using Dtos.Topics;
 using Dtos.Users;
 
@@ -28,5 +30,8 @@ public class MappingProfiles : Profile
         CreateMap<UpdateSession.Command, Session>();
         CreateMap<CreateSessionDto, CreateSession.Command>();
         CreateMap<CreateSession.Command, Session>();
+
+
+        CreateMap<GetDashboardStatsQueryDto, GetDashboardStats.Query>();
     }
 }

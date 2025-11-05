@@ -9,7 +9,7 @@ namespace Application.Users.Queries;
 
 public class GetUserById
 {
-    public record Query(string Id) : IRequest<UserDto>;
+    public record Query(Guid Id) : IRequest<UserDto>;
 
     public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Query, UserDto>
     {

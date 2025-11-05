@@ -5,7 +5,7 @@ namespace Application.Sessions.Commands;
 
 public class DeleteSession
 {
-    public record Command(string Id) : IRequest;
+    public record Command(Guid Id) : IRequest;
 
     public class Handler(AppDbContext context) : IRequestHandler<Command>
     {

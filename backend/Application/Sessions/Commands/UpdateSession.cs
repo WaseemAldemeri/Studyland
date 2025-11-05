@@ -10,10 +10,10 @@ public class UpdateSession
 {
     public class Command() : IRequest
     {
-        public required string Id { get; set; }
+        public required Guid Id { get; set; }
         public DateTimeOffset? StartedAt { get; set; }
         public TimeSpan? Duration { get; set; }
-        public string? TopicId { get; set; }
+        public Guid? TopicId { get; set; }
     }
 
     public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command>
@@ -24,7 +24,7 @@ public class UpdateSession
                 ?? throw new Exception("Can't find Session to update.");
 
 
-            if (session.TopicId is not null && !await context.Topics.AnyAsync(t => t.Id == request.TopicId))
+            if (request.TopicId is not null && !await context.Topics.AnyAsync(t => t.Id == request.TopicId))
             {
                 throw new Exception("Can't Find Topic to assign to session.");
             }

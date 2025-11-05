@@ -2,42 +2,47 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
 #nullable disable
 
-namespace Database.Migrations
+namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251023103305_DateJoinedForUsers")]
-    partial class DateJoinedForUsers
+    [Migration("20251104154129_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            modelBuilder.Entity("Models.Award", b =>
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Domain.Award", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("Date")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("TotalDurationMS")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("TotalDurationMS")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -46,24 +51,23 @@ namespace Database.Migrations
                     b.ToTable("Awards");
                 });
 
-            modelBuilder.Entity("Models.Session", b =>
+            modelBuilder.Entity("Domain.Session", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<TimeSpan>("DurationMS")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Duration")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("StartedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("TopicId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("TopicId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -74,43 +78,45 @@ namespace Database.Migrations
                     b.ToTable("Sessions");
                 });
 
-            modelBuilder.Entity("Models.Topic", b =>
+            modelBuilder.Entity("Domain.Topic", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Topics");
                 });
 
-            modelBuilder.Entity("Models.User", b =>
+            modelBuilder.Entity("Domain.User", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("DateJoined")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("DiscordId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Models.Award", b =>
+            modelBuilder.Entity("Domain.Award", b =>
                 {
-                    b.HasOne("Models.User", "User")
+                    b.HasOne("Domain.User", "User")
                         .WithMany("Awards")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -119,15 +125,15 @@ namespace Database.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Models.Session", b =>
+            modelBuilder.Entity("Domain.Session", b =>
                 {
-                    b.HasOne("Models.Topic", "Topic")
+                    b.HasOne("Domain.Topic", "Topic")
                         .WithMany("Sessions")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Models.User", "User")
+                    b.HasOne("Domain.User", "User")
                         .WithMany("Sessions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -138,12 +144,12 @@ namespace Database.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Models.Topic", b =>
+            modelBuilder.Entity("Domain.Topic", b =>
                 {
                     b.Navigation("Sessions");
                 });
 
-            modelBuilder.Entity("Models.User", b =>
+            modelBuilder.Entity("Domain.User", b =>
                 {
                     b.Navigation("Awards");
 

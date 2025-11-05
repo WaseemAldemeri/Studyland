@@ -1,0 +1,20 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      # This is mandatory.
+      ACCEPT_EULA: "Y"
+      # Set the password for the 'sa' (system administrator) user.
+      # CHOOSE A STRONG PASSWORD HERE. It must contain upper/lower case, numbers, and symbols.
+      SA_PASSWORD: "yourStrong(!)Password123"
+    ports:
+      # This maps the default SQL Server port 1433 inside the container
+      # to port 1433 on your local machine.
+      - "1433:1433"
+    volumes:
+      # This is optional but highly recommended. It will persist your database data
+      # on your local machine even if you remove the container.
+      - sqlserver_data:/var/opt/mssql
+
+volumes:
+  sqlserver_data:

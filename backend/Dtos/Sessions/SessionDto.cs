@@ -5,7 +5,7 @@ namespace Dtos.Sessions;
 
 public class SessionDto
 {
-    public required string Id { get; set; }
+    public required Guid Id { get; set; }
     public required DateTimeOffset StartedAt { get; set; }
     public required long DurationMs { get; set; }
     public required TimeSpan Duration { get; set; }

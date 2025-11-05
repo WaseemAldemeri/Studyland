@@ -7,11 +7,11 @@ using OldModels;
 
 Console.WriteLine("Starting data migration");
 
-const string newConnectionString = "Data Source=../API/studyland.db";
+const string newConnectionString = "Server=localhost,1433;Database=StudyLandDb;User Id=sa;Password=yourStrong(!)Password123;TrustServerCertificate=true";
 const string oldConnectionString = "Data Source=./nerds.db";
 
 var optionsBuilder = new DbContextOptionsBuilder();
-optionsBuilder.UseSqlite(newConnectionString);
+optionsBuilder.UseSqlServer(newConnectionString);
 var newDbContext = new AppDbContext(optionsBuilder.Options);
 
 Console.WriteLine("Step 1: Preparing destination database (studyland.db)...");

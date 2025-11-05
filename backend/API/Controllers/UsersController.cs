@@ -17,7 +17,7 @@ public class UsersController(IMediator mediator) : BaseApiController
     }
 
     [HttpGet("{id}", Name = "GetUserById")]
-    public async Task<ActionResult<UserDto>> GetUser(string id)
+    public async Task<ActionResult<UserDto>> GetUser(Guid id)
     {
         var user = await mediator.Send(new GetUserById.Query(id));
         return Ok(user);
