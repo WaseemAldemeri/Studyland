@@ -6,6 +6,7 @@ using AutoMapper;
 using FluentValidation;
 using Application.Stats.Queries;
 using Microsoft.AspNetCore.Mvc;
+using API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +28,13 @@ builder.Services.AddMediatR(opts =>
 });
 builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
 builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator>();
+builder.Services.AddTransient<ExceptionMiddleware>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

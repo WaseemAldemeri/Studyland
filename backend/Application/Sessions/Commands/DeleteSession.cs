@@ -1,6 +1,7 @@
 using Persistence;
 using MediatR;
 using FluentValidation;
+using Application.Core;
 
 namespace Application.Sessions.Commands;
 
@@ -14,7 +15,7 @@ public class DeleteSession
         public async Task Handle(Command request, CancellationToken cancellationToken)
         {
             var session = await context.Sessions.FindAsync([request.Id], cancellationToken)
-                ?? throw new Exception($"Coudln't Find Session with ID ${request.Id} to Delete.");
+                ?? throw RestException.NotFound($"Coudln't Find Session with ID ${request.Id} to Delete.");
 
             context.Sessions.Remove(session);
 

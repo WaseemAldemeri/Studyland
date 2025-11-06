@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Domain;
 using FluentValidation;
+using Application.Core;
 
 namespace Application.Sessions.Commands;
 
@@ -23,12 +24,13 @@ public class UpdateSession
         public async Task Handle(Command request, CancellationToken cancellationToken)
         {
             Session session = await context.Sessions.FindAsync([request.Id], cancellationToken)
-                ?? throw new Exception("Can't find Session to update.");
+                ?? throw RestException.NotFound("Can't find Session to update.");
 
             mapper.Map(request, session);
 
             await context.SaveChangesAsync(cancellationToken);
         }
+
     }
     
     

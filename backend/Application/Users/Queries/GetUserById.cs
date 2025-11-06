@@ -1,10 +1,9 @@
 using Persistence;
 using MediatR;
-using Domain;
 using Dtos.Users;
-using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using FluentValidation;
+using Application.Core;
 
 namespace Application.Users.Queries;
 
@@ -18,7 +17,7 @@ public class GetUserById
         {
 
             var user = await context.Users.FindAsync([request.Id], cancellationToken)
-                ?? throw new Exception("No user with such id");
+                ?? throw RestException.NotFound("No user with such id");
 
             return mapper.Map<UserDto>(user);
         }
