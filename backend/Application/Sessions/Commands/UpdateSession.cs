@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Domain;
+using FluentValidation;
 
 namespace Application.Sessions.Commands;
 
@@ -16,6 +17,7 @@ public class UpdateSession
         public Guid? TopicId { get; set; }
     }
 
+
     public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command>
     {
         public async Task Handle(Command request, CancellationToken cancellationToken)
@@ -23,15 +25,25 @@ public class UpdateSession
             Session session = await context.Sessions.FindAsync([request.Id], cancellationToken)
                 ?? throw new Exception("Can't find Session to update.");
 
-
-            if (request.TopicId is not null && !await context.Topics.AnyAsync(t => t.Id == request.TopicId))
-            {
-                throw new Exception("Can't Find Topic to assign to session.");
-            }
-
             mapper.Map(request, session);
 
             await context.SaveChangesAsync(cancellationToken);
+        }
+    }
+    
+    
+    public class Validator : AbstractValidator<Command>
+    {
+        public Validator(AppDbContext context)
+        {
+            RuleFor(x => x.Id).NotEmpty().WithMessage("id is required.");
+            When(x => x.TopicId is not null, () =>
+            {
+                RuleFor(x => x.TopicId).MustAsync(async (topicId, cancellation) =>
+                    await context.Topics.AnyAsync(t => t.Id == topicId, cancellation)
+                )
+                .WithMessage($"The Provided TopicId doesn't exist.");
+            });
         }
     }
 }

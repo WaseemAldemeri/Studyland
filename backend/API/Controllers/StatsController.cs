@@ -12,7 +12,7 @@ public class StatsController(IMediator mediator, IMapper mapper) : BaseApiContro
     public async Task<ActionResult<StatsDto>> GetDashboardStats([FromQuery] GetDashboardStatsQueryDto queryParams)
     {
         var query = mapper.Map<GetDashboardStats.Query>(queryParams);
-        query.UserIds.Add(new Guid("5e601154-573b-479b-a0f0-e722951f54ab"));
+        query.UserIds.Add(SessionsController.CurrentUserId);
 
         return Ok(await mediator.Send(query));
     }

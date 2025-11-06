@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateSessionDto = {
-    startedAt: string;
-    durationMs: number;
-    topicId: string;
+    startedAt: string | null;
+    durationMs: number | null;
+    topicId: string | null;
 };
 

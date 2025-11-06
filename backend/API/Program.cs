@@ -5,6 +5,7 @@ using Application.Core;
 using AutoMapper;
 using FluentValidation;
 using Application.Stats.Queries;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,11 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining<GetUsersList>());
+builder.Services.AddMediatR(opts =>
+{
+    opts.RegisterServicesFromAssemblyContaining<GetUsersList>();
+    opts.AddOpenBehavior(typeof(ValidationBehaviour<,>));
+});
 builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
 builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator>();
 

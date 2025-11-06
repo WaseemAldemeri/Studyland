@@ -24,8 +24,7 @@ public class MappingProfiles : Profile
         CreateMap<UpdateSessionDto, UpdateSession.Command>()
             .ForMember(dest => dest.Duration, opt =>
             {
-                opt.Condition(src => src.DurationMs.HasValue);
-                opt.MapFrom(src => TimeSpan.FromMilliseconds((double)src.DurationMs!));
+                opt.MapFrom(src => src.DurationMs != null ? TimeSpan.FromMilliseconds((double)src.DurationMs) : (TimeSpan?)null);
             });
         CreateMap<UpdateSession.Command, Session>();
         CreateMap<CreateSessionDto, CreateSession.Command>();

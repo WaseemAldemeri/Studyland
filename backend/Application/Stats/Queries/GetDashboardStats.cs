@@ -20,39 +20,11 @@ public class GetDashboardStats
         public List<Guid>? TopicIds { get; set; }
     }
 
-    public class Validator : AbstractValidator<Query>
-    {
-        public Validator(AppDbContext context) // We can inject the DbContext here!
-        {
-            // Rule: StartDate must be before EndDate
-            RuleFor(x => x.EndDate).GreaterThan(x => x.StartDate)
-                .WithMessage("End date must be after start date.");
-
-            // Rule: All provided UserIds must exist in the database.
-            RuleForEach(x => x.UserIds).MustAsync(async (userId, cancellation) =>
-            {
-                return await context.Users.AnyAsync(u => u.Id == userId, cancellation);
-            }).WithMessage((query, userId) => $"User with ID '{userId}' not found.");
-
-            // Rule: All provided TopicIds (if any) must exist.
-            When(x => x.TopicIds != null && x.TopicIds.Count != 0, () =>
-            {
-                RuleForEach(x => x.TopicIds).MustAsync(async (topicId, cancellation) =>
-                {
-                    return await context.Topics.AnyAsync(t => t.Id == topicId, cancellation);
-                }).WithMessage((query, topicId) => $"Topic with ID '{topicId}' not found.");
-            });
-        }
-    }
-
-    public class Handler(AppDbContext context, IValidator<Query> validator, IMapper mapper) : IRequestHandler<Query, StatsDto>
+    public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Query, StatsDto>
     {
         public async Task<StatsDto> Handle(Query request, CancellationToken cancellationToken)
         {
-            await validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            IQueryable<Session> queryable = GetFilterQuery(request);
-            var sessions = await queryable.ToListAsync(cancellationToken);
+            var sessions = await GetFilteredSessionsAsync(request);
 
             var kpis = GetKpis(sessions);
             var topicBreakDowns = GetTopicBreakDowns(sessions);
@@ -69,7 +41,7 @@ public class GetDashboardStats
             };
         }
 
-        private IQueryable<Session> GetFilterQuery(Query request)
+        private async Task<List<Session>> GetFilteredSessionsAsync(Query request)
         {
             var queryable = context.Sessions.Where(
                 x => request.UserIds.Contains(x.UserId) &&
@@ -86,7 +58,7 @@ public class GetDashboardStats
                 .Include(s => s.Topic)
                 .Include(s => s.User);
 
-            return queryable;
+            return await queryable.ToListAsync();
         }
 
         private List<StatsDto.UserTopicBreakDown> GetTopicBreakDowns(IEnumerable<Session> sessions)
@@ -135,4 +107,30 @@ public class GetDashboardStats
     }
 
 
+    public class Validator : AbstractValidator<Query>
+    {
+        public Validator(AppDbContext context)
+        {
+            RuleFor(x => x.StartDate).NotEmpty().WithMessage("startDate is required.");
+            RuleFor(x => x.EndDate)
+                .NotEmpty().WithMessage("endDate is required.")
+                .GreaterThan(x => x.StartDate)
+                .WithMessage("End date must be after start date.");
+
+            RuleFor(x => x.UserIds).NotEmpty().WithMessage("userIds list is required");
+            RuleForEach(x => x.UserIds)
+                .MustAsync(async (userId, cancellation) => 
+                   await context.Users.AnyAsync(u => u.Id == userId, cancellation)
+                ).WithMessage((query, userId) => $"User with ID '{userId}' not found.");
+
+            When(x => x.TopicIds != null && x.TopicIds.Count != 0, () =>
+            {
+                RuleForEach(x => x.TopicIds)
+                    .MustAsync(async (topicId, cancellation) =>
+                        await context.Topics.AnyAsync(t => t.Id == topicId, cancellation)
+                    )
+                    .WithMessage((query, topicId) => $"Topic with ID '{topicId}' not found.");
+            });
+        }
+    }
 }

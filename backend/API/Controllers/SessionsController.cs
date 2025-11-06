@@ -9,7 +9,7 @@ namespace API.Controllers;
 
 public class SessionsController(IMediator mediator, IMapper mapper) : BaseApiController
 {
-    public static Guid CurrentUserId { get; set; } = new ("5e601154-573b-479b-a0f0-e722951f54ab");
+    public static Guid CurrentUserId { get; set; } = new ("d8c22579-d804-4a30-8130-3f83d52b4ebd");
 
     [HttpGet(Name = "GetSessions")]
     public async Task<ActionResult<List<SessionDto>>> GetSessions([FromQuery] GetSessionsQueryDto queryDto)

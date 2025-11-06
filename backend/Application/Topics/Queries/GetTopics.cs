@@ -9,10 +9,7 @@ namespace Application.Topics.Queries;
 
 public class GetTopics
 {
-    public class Query : IRequest<List<TopicDto>>
-    {
-
-    }
+    public class Query : IRequest<List<TopicDto>>;
 
     public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Query, List<TopicDto>>
     {
