@@ -27,6 +27,21 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger, IHostEnvir
         }
     }
 
+
+    private async Task HandleUncaughtException(HttpContext context, Exception ex)
+    {
+        var exception = RestException.Internal(ex.Message, env.IsDevelopment() ? ex.StackTrace : null);
+        await HandleRestException(context, exception);
+    }
+
+
+    private static async Task HandleRestException(HttpContext context, RestException ex)
+    {
+        context.Response.StatusCode = (int)ex.Code;
+        await context.Response.WriteAsJsonAsync(ex.AsResponse);
+    }
+
+
     private static async Task HandleValidationException(HttpContext context, ValidationException ex)
     {
         var validationErrors = new Dictionary<string, string[]>();
@@ -56,18 +71,5 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger, IHostEnvir
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
         await context.Response.WriteAsJsonAsync(validationProblemDetails);
-    }
-
-    private async Task HandleUncaughtException(HttpContext context, Exception ex)
-    {
-        var exception = RestException.Internal(ex.Message, env.IsDevelopment() ? ex.StackTrace : null);
-        await HandleRestException(context, exception);
-    }
-
-
-    private static async Task HandleRestException(HttpContext context, RestException ex)
-    {
-        context.Response.StatusCode = (int)ex.Code;
-        await context.Response.WriteAsJsonAsync(ex.AsResponse);
     }
 }

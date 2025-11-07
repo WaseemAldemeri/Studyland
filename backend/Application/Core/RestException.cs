@@ -10,6 +10,16 @@ public class RestException(HttpStatusCode code, string message, string? details 
     public string? Details { get; set; } = details;
 
     /// <summary>
+    /// The error data represented as an object ready for json parsing
+    /// </summary>
+    public record ExceptionResponse(HttpStatusCode Status, string Message, string? Details);
+
+    /// <summary>
+    /// Returns the error as an object ready for json serilization
+    /// </summary>
+    public ExceptionResponse AsResponse => new(Code, Message, Details);
+
+    /// <summary>
     /// Creates a 404 Not Found exception.
     /// </summary>
     public static RestException NotFound(string message = "Resource not found.")
@@ -57,7 +67,4 @@ public class RestException(HttpStatusCode code, string message, string? details 
         return new RestException(HttpStatusCode.InternalServerError, message, details);
     }
 
-    public record ExceptionResponse(HttpStatusCode Status, string Message, string? Details);
-
-    public ExceptionResponse AsResponse => new(Code, Message, Details);
 }
