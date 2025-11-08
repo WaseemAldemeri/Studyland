@@ -38,10 +38,10 @@ public class UpdateSession
     {
         public Validator(AppDbContext context)
         {
-            RuleFor(x => x.Id).Required("id");
+            RuleFor(x => x.Id).Required();
 
             When(x => x.TopicId is not null, () =>
-                RuleFor(x => x.TopicId).MustExistsInDb<Command, Topic>(context, "Topic")
+                RuleFor(x => x.TopicId).MustExistInDb(context.Topics)
             );
         }
     }

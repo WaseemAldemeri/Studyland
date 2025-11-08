@@ -27,7 +27,7 @@ public class GetUserById
     {
         public Validator()
         {
-            RuleFor(x => x.Id).Required("id");
+            RuleFor(x => x.Id).Required();
         }
     }
 }

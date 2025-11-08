@@ -38,16 +38,16 @@ public class CreateSession
     {
         public Validator(AppDbContext context)
         {
-            RuleFor(x => x.StartedAt).Required("startedAt");
-            RuleFor(x => x.DurationMS).Required("durationMs");
+            RuleFor(x => x.StartedAt).Required();
+            RuleFor(x => x.DurationMS).Required();
 
             RuleFor(x => x.UserId)
-                .Required("userId")
-                .MustExistsInDb<Command, User>(context, "User");
+                .Required()
+                .MustExistInDb(context.Users);
 
             RuleFor(x => x.TopicId)
-                .Required("topicId")
-                .MustExistsInDb<Command, Topic>(context, "Topic");
+                .Required()
+                .MustExistInDb(context.Topics);
         }
 
         // before using my custoum extensions for fluent validation

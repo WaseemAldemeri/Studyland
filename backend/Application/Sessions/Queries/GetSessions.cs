@@ -5,6 +5,7 @@ using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using Dtos.Sessions;
 using FluentValidation;
+using Application.Core;
 
 namespace Application.Sessions.Queries;
 
@@ -40,11 +41,8 @@ public class GetSessions
             RuleFor(x => x.Date).NotEmpty().WithMessage("date is required");
 
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("userId is required.")
-                .MustAsync(async (userId, canncellation) =>
-                    await context.Users.AnyAsync(u => u.Id == userId, canncellation)
-                )
-                .WithMessage((query, userId) => $"User wirh ID: ${userId} Doesn't exist.");
+                .Required()
+                .MustExistInDb(context.Users);
         }
     }
 }

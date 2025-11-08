@@ -1,7 +1,6 @@
 using Domain;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Persistence;
 
 namespace Application.Core;
 
@@ -12,11 +11,10 @@ public static class ValidationExtensions
     /// This method extends fluent validation with a method that
     /// combines NotEpmty and WithMessage with a pre formated message.
     /// </summary>
-    /// <param name="fieldName">The field name to display in the error message</param>
     public static IRuleBuilderOptions<T, TProperty> Required<T, TProperty>(
-        this IRuleBuilder<T, TProperty> ruleBuilder,
-        string fieldName
-    ) => ruleBuilder.NotEmpty().WithMessage($"{fieldName} is Required");
+        this IRuleBuilder<T, TProperty> ruleBuilder
+    ) => ruleBuilder.NotEmpty().WithMessage("'{PropertyName}' is Required");
+
 
 
     /// <summary>
@@ -24,19 +22,19 @@ public static class ValidationExtensions
     /// uses MustAsync to make a call on database with the resource id
     /// and throws a pre formated message. Works only on Guid TPropertiy
     /// </summary>
-    /// <typeparam name="TDomainEntity">The Domain Entity to use to query the correct table in the database</typeparam>
-    /// <param name="context">The database Context</param>
-    /// <param name="resourceName">The entity name to display in the error message</param>
-    public static IRuleBuilderOptions<T, Guid> MustExistsInDb<T, TDomainEntity>(
+    /// <param name="dbSet">The database Context set to the domain entity</param>
+    public static IRuleBuilderOptions<T, Guid> MustExistInDb<T, TDomainEntity>(
         this IRuleBuilder<T, Guid> ruleBuilder,
-        AppDbContext context,
-        string resourceName
+        DbSet<TDomainEntity> dbSet
     ) where TDomainEntity : class, IDomainEntity
     {
+        var resourceName = typeof(TDomainEntity).Name;
+
         return ruleBuilder.MustAsync(async (id, cancellationToken) =>
-            await context.Set<TDomainEntity>().AnyAsync(e => e.Id.Equals(id), cancellationToken)
+            await dbSet.AnyAsync(e => e.Id.Equals(id), cancellationToken)
         )
-        .WithMessage($"Could not find the specified {resourceName}");
+        .WithMessage($"Could not find the specified '{resourceName}' with the provided Id: '{{PropertyValue}}'");
+
     }
 
     /// <summary>
@@ -44,25 +42,23 @@ public static class ValidationExtensions
     /// uses MustAsync to make a call on database with the resource id
     /// and throws a pre formated message. Works only on Guid TPropertiy
     /// </summary>
-    /// <typeparam name="TDomainEntity">The Domain Entity to use to query the correct table in the database</typeparam>
-    /// <param name="context">The database Context</param>
-    /// <param name="resourceName">The entity name to display in the error message</param>
-    public static IRuleBuilderOptions<T, Guid?> MustExistsInDb<T, TDomainEntity>(
+    /// <param name="dbSet">The database Context set to the Entity</param>
+    public static IRuleBuilderOptions<T, Guid?> MustExistInDb<T, TDomainEntity>(
         this IRuleBuilder<T, Guid?> ruleBuilder,
-        AppDbContext context,
-        string resourceName
+        DbSet<TDomainEntity> dbSet
     ) where TDomainEntity : class, IDomainEntity
     {
+        var resourceName = typeof(TDomainEntity).Name;
+
         return ruleBuilder.MustAsync(async (id, cancellationToken) =>
         {
-
             if (id is null)
             {
                 return true;
             }
 
-            return await context.Set<TDomainEntity>().AnyAsync(e => e.Id.Equals(id), cancellationToken);
+            return await dbSet.AnyAsync(e => e.Id.Equals(id), cancellationToken);
         })
-        .WithMessage($"Could not find the specified {resourceName}");
+        .WithMessage($"Could not find the specified '{resourceName}' with the provided Id: '{{PropertyValue}}'");
     }
 }

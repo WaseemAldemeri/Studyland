@@ -28,7 +28,7 @@ public class DeleteSession
     {
         public Validator()
         {
-            RuleFor(x => x.Id).Required("id");
+            RuleFor(x => x.Id).Required();
         }
     }
 }

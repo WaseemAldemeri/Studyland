@@ -112,17 +112,17 @@ public class GetDashboardStats
     {
         public Validator(AppDbContext context)
         {
-            RuleFor(x => x.StartDate).Required("startDate");
+            RuleFor(x => x.StartDate).Required();
             RuleFor(x => x.EndDate)
-                .Required("endDate")
+                .Required()
                 .GreaterThan(x => x.StartDate)
                 .WithMessage("End date must be after start date.");
 
-            RuleFor(x => x.UserIds).Required("userIds list");
-            RuleForEach(x => x.UserIds).MustExistsInDb<Query, User>(context, "User");
+            RuleFor(x => x.UserIds).Required();
+            RuleForEach(x => x.UserIds).MustExistInDb(context.Users);
 
             When(x => x.TopicIds is not null && x.TopicIds.Count != 0, () =>
-                RuleForEach(x => x.TopicIds).MustExistsInDb<Query, Topic>(context, "Topic")
+                RuleForEach(x => x.TopicIds).MustExistInDb(context.Topics)
             );
         }
         
