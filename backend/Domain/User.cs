@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public class User
+public class User : IDomainEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     // a temp discord id just for migration purposes from discord

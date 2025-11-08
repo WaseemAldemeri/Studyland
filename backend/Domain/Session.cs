@@ -1,6 +1,6 @@
 namespace Domain;
 
-public class Session
+public class Session : IDomainEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 

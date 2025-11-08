@@ -1,3 +1,4 @@
+using Application.Core;
 using AutoMapper;
 using Domain;
 using Dtos.Stats;
@@ -111,26 +112,41 @@ public class GetDashboardStats
     {
         public Validator(AppDbContext context)
         {
-            RuleFor(x => x.StartDate).NotEmpty().WithMessage("startDate is required.");
+            RuleFor(x => x.StartDate).Required("startDate");
             RuleFor(x => x.EndDate)
-                .NotEmpty().WithMessage("endDate is required.")
+                .Required("endDate")
                 .GreaterThan(x => x.StartDate)
                 .WithMessage("End date must be after start date.");
 
-            RuleFor(x => x.UserIds).NotEmpty().WithMessage("userIds list is required");
-            RuleForEach(x => x.UserIds)
-                .MustAsync(async (userId, cancellation) => 
-                   await context.Users.AnyAsync(u => u.Id == userId, cancellation)
-                ).WithMessage((query, userId) => $"User with ID '{userId}' not found.");
+            RuleFor(x => x.UserIds).Required("userIds list");
+            RuleForEach(x => x.UserIds).MustExistsInDb<Query, User>(context, "User");
 
-            When(x => x.TopicIds != null && x.TopicIds.Count != 0, () =>
-            {
-                RuleForEach(x => x.TopicIds)
-                    .MustAsync(async (topicId, cancellation) =>
-                        await context.Topics.AnyAsync(t => t.Id == topicId, cancellation)
-                    )
-                    .WithMessage((query, topicId) => $"Topic with ID '{topicId}' not found.");
-            });
+            When(x => x.TopicIds is not null && x.TopicIds.Count != 0, () =>
+                RuleForEach(x => x.TopicIds).MustExistsInDb<Query, Topic>(context, "Topic")
+            );
         }
+        
+        // before extension methods
+        // 
+        // RuleFor(x => x.StartDate).NotEmpty().WithMessage("startDate is required.");
+        // RuleFor(x => x.EndDate)
+        //     .NotEmpty().WithMessage("endDate is required.")
+        //     .GreaterThan(x => x.StartDate)
+        //     .WithMessage("End date must be after start date.");
+
+        // RuleFor(x => x.UserIds).NotEmpty().WithMessage("userIds list is required");
+        // RuleForEach(x => x.UserIds)
+        //     .MustAsync(async (userId, cancellation) => 
+        //        await context.Users.AnyAsync(u => u.Id == userId, cancellation)
+        //     ).WithMessage((query, userId) => $"User with ID '{userId}' not found.");
+
+        // When(x => x.TopicIds != null && x.TopicIds.Count != 0, () =>
+        // {
+        //     RuleForEach(x => x.TopicIds)
+        //         .MustAsync(async (topicId, cancellation) =>
+        //             await context.Topics.AnyAsync(t => t.Id == topicId, cancellation)
+        //         )
+        //         .WithMessage((query, topicId) => $"Topic with ID '{topicId}' not found.");
+        // });
     }
 }

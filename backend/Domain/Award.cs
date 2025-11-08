@@ -1,6 +1,6 @@
 namespace Domain;
 
-public class Award
+public class Award : IDomainEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Title { get; set; }    

@@ -2,7 +2,7 @@
 
 import { useState } from "react"; // Added for sorting state
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SessionsService, type SessionDto } from "@/api/generated";
+import { SessionsService, type CreateSessionDto, type SessionDto } from "@/api/generated";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -229,7 +229,7 @@ export function SessionsDataTable({
         </div>
         <Button
           disabled={!selectedDay}
-          onClick={() => SessionsService.createSession({durationMs: 0, startedAt: "", topicId: ""})}
+          onClick={() => SessionsService.createSession({} as CreateSessionDto)}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Session

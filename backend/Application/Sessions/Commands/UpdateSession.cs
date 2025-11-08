@@ -32,20 +32,17 @@ public class UpdateSession
         }
 
     }
-    
-    
+
+
     public class Validator : AbstractValidator<Command>
     {
         public Validator(AppDbContext context)
         {
-            RuleFor(x => x.Id).NotEmpty().WithMessage("id is required.");
+            RuleFor(x => x.Id).Required("id");
+
             When(x => x.TopicId is not null, () =>
-            {
-                RuleFor(x => x.TopicId).MustAsync(async (topicId, cancellation) =>
-                    await context.Topics.AnyAsync(t => t.Id == topicId, cancellation)
-                )
-                .WithMessage($"The Provided TopicId doesn't exist.");
-            });
+                RuleFor(x => x.TopicId).MustExistsInDb<Command, Topic>(context, "Topic")
+            );
         }
     }
 }

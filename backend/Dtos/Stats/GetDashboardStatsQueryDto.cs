@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Dtos.Stats;
 
 // This DTO represents the public-facing query parameters for the stats endpoint.
@@ -5,7 +7,9 @@ namespace Dtos.Stats;
 public class GetDashboardStatsQueryDto
 {
     public List<Guid>? UserIds { get; set; }
+    [Required]
     public DateTimeOffset StartDate { get; set; }
+    [Required]
     public DateTimeOffset EndDate { get; set; }
     public List<Guid>? TopicIds { get; set; }
 }

@@ -1,6 +1,6 @@
 namespace Domain;
 
-public class Topic
+public class Topic : IDomainEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Title { get; set; }
