@@ -39,14 +39,6 @@ const TOPIC_COLORS = [
   "#82ca9d",
 ];
 
-// Helper to format TimeSpan string for the tooltip and label
-const timeSpanToHours = (timeSpan: string): number => {
-  const parts = timeSpan.split(/[:.]/);
-  const hours = parseInt(parts[0], 10);
-  const minutes = parseInt(parts[1], 10);
-  return hours + minutes / 60;
-};
-
 export function BreakdownChart({
   userTopicBreakdowns,
   usersInQuery,
@@ -84,7 +76,7 @@ export function BreakdownChart({
     );
   }
 
-  if (!isLoading && chartData.length === 0) {
+  if (!isLoading && userTopicBreakdowns.length === 0) {
     return (
       <Card className="h-96">
         <CardHeader>
@@ -129,31 +121,6 @@ export function BreakdownChart({
               innerRadius={60} // This makes it a donut chart
               fill="#8884d8"
               dataKey="value"
-              // A custom label that shows percentage on the chart
-              label={({
-                cx,
-                cy,
-                midAngle,
-                innerRadius,
-                outerRadius,
-                percent,
-              }) => {
-                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-                const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-                return percent * 100 > 5 ? (
-                  <text
-                    x={x}
-                    y={y}
-                    fill="white"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={12}
-                  >
-                    {`${(percent * 100).toFixed(0)}%`}
-                  </text>
-                ) : null;
-              }}
             >
               {chartData.map((entry, index) => (
                 <Cell

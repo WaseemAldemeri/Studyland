@@ -23,19 +23,6 @@ const getDefaultDateRange = () => {
 
 const CURRENT_USER_ID = "5e601154-573b-479b-a0f0-e722951f54ab";
 
-// --- Helper function to format TimeSpan strings ---
-function formatTimeSpan(timeSpanString: string): string {
-  const parts = timeSpanString.split(/[:.]/);
-  const hours = parseInt(parts[0], 10);
-  const minutes = parseInt(parts[1], 10);
-
-  if (hours === 0 && minutes === 0) return "0 min";
-  if (hours === 0) return `${minutes} min`;
-
-  const totalHours = hours + minutes / 60;
-  return `${totalHours.toFixed(1)} h`;
-}
-
 export default function StatsPage() {
   // --- STATE MANAGEMENT FOR FILTERS ---
   // This is the single source of truth for all filters on this page.
@@ -52,13 +39,13 @@ export default function StatsPage() {
 
   // Query 1: Fetch all available topics for the multi-select filter.
   // This data is then passed as a prop to the FilterBar component.
-  const { data: allTopics, isLoading: topicsLoading } = useQuery({
+  const { data: allTopics } = useQuery({
     queryKey: ["allTopics"],
     queryFn: () => TopicsService.getTopics(),
   });
 
   // Query 2: Fetch all available users (friends) for the comparison multi-select.
-  const { data: allUsers, isLoading: usersLoading } = useQuery({
+  const { data: allUsers } = useQuery({
     queryKey: ["allUsers"],
     queryFn: () => UsersService.getUsers(), // Assuming you have a GET /api/users endpoint
   });

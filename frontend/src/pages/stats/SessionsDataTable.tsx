@@ -1,6 +1,6 @@
 // src/components/stats/SessionsDataTable.tsx
 
-import { useState, type Dispatch, type SetStateAction } from "react"; // Added for sorting state
+import { useState } from "react"; // Added for sorting state
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SessionsService, type SessionDto } from "@/api/generated";
 import { Button } from "@/components/ui/button";
@@ -229,7 +229,7 @@ export function SessionsDataTable({
         </div>
         <Button
           disabled={!selectedDay}
-          onClick={() => alert("Opening Add Session modal...")}
+          onClick={() => SessionsService.createSession({durationMs: 0, startedAt: "", topicId: ""})}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Session
