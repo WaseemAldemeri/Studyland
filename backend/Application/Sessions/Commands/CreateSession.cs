@@ -13,7 +13,7 @@ public class CreateSession
     public record Command() : IRequest<Guid>
     {
         public required DateTimeOffset StartedAt { get; set; }
-        public required TimeSpan DurationMS { get; set; }
+        public required TimeSpan Duration { get; set; }
         public required Guid UserId { get; set; }
         public required Guid TopicId { get; set; }
     }
@@ -39,7 +39,7 @@ public class CreateSession
         public Validator(AppDbContext context)
         {
             RuleFor(x => x.StartedAt).Required();
-            RuleFor(x => x.DurationMS).Required();
+            RuleFor(x => x.Duration).Required();
 
             RuleFor(x => x.UserId)
                 .Required()
