@@ -99,8 +99,7 @@ export function MultiSelectPopover({
                       <CommandItem
                         key={option.value}
                         onSelect={() => handleSelect(option.value)}
-                        // --- STYLING FIX: Added cursor-pointer ---
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-primary/40"
                       >
                         <Check
                           className={cn(

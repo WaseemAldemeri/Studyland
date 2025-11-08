@@ -21,7 +21,7 @@ const getDefaultDateRange = () => {
   return { startDate, endDate };
 };
 
-const CURRENT_USER_ID = "5e601154-573b-479b-a0f0-e722951f54ab";
+const CURRENT_USER_ID = "d8c22579-d804-4a30-8130-3f83d52b4ebd";
 
 export default function StatsPage() {
   // --- STATE MANAGEMENT FOR FILTERS ---
@@ -80,12 +80,12 @@ export default function StatsPage() {
   const kpiCardData = [
     {
       title: "Total Hours Studied",
-      value: myKpis ? myKpis.totalStudyTimeHours + "H" : "...",
+      value: myKpis ? myKpis.totalStudyTimeHours + " Hours" : "...",
       icon: Clock,
     },
     {
       title: "Average Session",
-      value: myKpis ? myKpis.averegeSessionDurationMinutes + "M" : "...",
+      value: myKpis ? myKpis.averegeSessionDurationMinutes + " Minutes" : "...",
       icon: TrendingUp,
     },
     {

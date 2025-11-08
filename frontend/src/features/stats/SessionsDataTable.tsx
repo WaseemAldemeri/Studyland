@@ -2,7 +2,7 @@
 
 import { useState } from "react"; // Added for sorting state
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SessionsService, type CreateSessionDto, type SessionDto } from "@/api/generated";
+import { SessionsService, type SessionDto } from "@/api/generated";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import { SessionFormModal } from "./SessionFormModal";
 
 interface SessionsDataTableProps {
   selectedDay: string | null;
@@ -49,6 +50,20 @@ export function SessionsDataTable({
   handleDaySelect,
 }: SessionsDataTableProps) {
   const queryClient = useQueryClient();
+
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  // This will hold the session data when editing, or be null when creating
+  const [sessionToEdit, setSessionToEdit] = useState<SessionDto | null>(null);
+
+  const handleOpenEditModal = (session: SessionDto) => {
+    setSessionToEdit(session);
+    setIsFormModalOpen(true);
+  };
+  
+  const handleOpenCreateModal = () => {
+    setSessionToEdit(null); // Ensure we are in "create" mode
+    setIsFormModalOpen(true);
+  };
 
   // --- NEW: State to manage sorting ---
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -102,7 +117,7 @@ export function SessionsDataTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-2"
           >
-            Duration
+            Duration (HH:mm)
             {!column.getIsSorted() ? (
               <ArrowUpDown className="h-4 w-4" />
             ) : column.getIsSorted() === "asc" ? (
@@ -113,6 +128,9 @@ export function SessionsDataTable({
           </button>
         );
       },
+      cell: ({row}) => {const [hours, minutes] = row.original.duration.split(":")
+        return `${hours}:${minutes}`
+      }
     },
     {
       accessorKey: "startedAt",
@@ -133,7 +151,7 @@ export function SessionsDataTable({
           </button>
         );
       },
-      cell: ({ row }) => new Date(row.original.startedAt).toLocaleTimeString(),
+      cell: ({ row }) => new Date(row.original.startedAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}),
     },
     {
       id: "actions",
@@ -142,12 +160,13 @@ export function SessionsDataTable({
         const session = row.original;
         return (
           // --- MODIFIED: Replaced Dropdown with direct buttons ---
+          <>
           <div className="flex items-center justify-end gap-2 mr-2">
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => alert(`Editing ${session.id}`)}
+              onClick={() => handleOpenEditModal(session)}
             >
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Edit Session</span>
@@ -162,6 +181,7 @@ export function SessionsDataTable({
               <span className="sr-only">Delete Session</span>
             </Button>
           </div>
+          </>
         );
       },
     },
@@ -229,12 +249,19 @@ export function SessionsDataTable({
         </div>
         <Button
           disabled={!selectedDay}
-          onClick={() => SessionsService.createSession({} as CreateSessionDto)}
+          onClick={handleOpenCreateModal}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Session
         </Button>
       </div>
+
+     <SessionFormModal
+          isOpen={isFormModalOpen}
+          onClose={() => setIsFormModalOpen(false)}
+          sessionToEdit={sessionToEdit}
+          selectedDay={selectedDay!}
+      />
 
       <div className="rounded-md border">
         <Table>
