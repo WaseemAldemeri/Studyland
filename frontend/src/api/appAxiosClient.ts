@@ -4,6 +4,16 @@ import { toast } from "sonner";
 
 const appAxiosClient = axios.create();
 
+appAxiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access-token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  }
+);
+
 appAxiosClient.interceptors.response.use(
   (response) => {
     const method = response.config.method?.toUpperCase();

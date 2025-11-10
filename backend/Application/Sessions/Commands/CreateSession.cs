@@ -33,7 +33,6 @@ public class CreateSession
         }
     }
 
-
     public class Validator : AbstractValidator<Command>
     {
         public Validator(AppDbContext context)

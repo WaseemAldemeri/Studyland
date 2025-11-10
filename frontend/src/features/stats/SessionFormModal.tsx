@@ -41,6 +41,7 @@ export function SessionFormModal({
 
   const form = useForm<SessionFormData>({
     resolver: zodResolver(sessionFormSchema),
+    mode: "onTouched"
   });
 
   const { data: allTopics = [] } = useQuery({

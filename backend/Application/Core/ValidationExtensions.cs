@@ -37,12 +37,7 @@ public static class ValidationExtensions
 
     }
 
-    /// <summary>
-    /// This methods extends fluent validation with a method that
-    /// uses MustAsync to make a call on database with the resource id
-    /// and throws a pre formated message. Works only on Guid TPropertiy
-    /// </summary>
-    /// <param name="dbSet">The database Context set to the Entity</param>
+    /// <inheritdoc cref="MustExistInDb{T, TDomainEntity}(IRuleBuilder{T, Guid}, DbSet{TDomainEntity})"/>
     public static IRuleBuilderOptions<T, Guid?> MustExistInDb<T, TDomainEntity>(
         this IRuleBuilder<T, Guid?> ruleBuilder,
         DbSet<TDomainEntity> dbSet

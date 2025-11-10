@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Domain;
 using MediatR;
 using Application.Users.Queries;
 using Dtos.Users;

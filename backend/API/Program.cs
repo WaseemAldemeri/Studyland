@@ -5,14 +5,29 @@ using Application.Core;
 using AutoMapper;
 using FluentValidation;
 using Application.Stats.Queries;
-using Microsoft.AspNetCore.Mvc;
 using API.Middlewares;
+using Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Scalar.AspNetCore;
+using API.Services;
+using Application.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(
+opts =>
+{
+    var policy = new AuthorizationPolicyBuilder();
+    opts.Filters.Add(new AuthorizeFilter());
+}
+);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddCors();
@@ -29,6 +44,37 @@ builder.Services.AddMediatR(opts =>
 builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
 builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator>();
 builder.Services.AddTransient<ExceptionMiddleware>();
+builder.Services.AddIdentityApiEndpoints<User>(opts =>
+{
+    opts.User.RequireUniqueEmail = true;
+}
+).AddRoles<IdentityRole<Guid>>()
+.AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddAuthentication(options =>
+{
+    // Set the default scheme to JWT
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options => // 2. Configure the JWT handler
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            builder.Configuration["Jwt:SecretKey"]
+            ?? throw new NullReferenceException("Jwt:SecretKey is not found")
+        )),
+
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+        // 3. We are not validating the audience
+        ValidateAudience = false
+    };
+});
+
 
 var app = builder.Build();
 
@@ -38,11 +84,13 @@ app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 // app.UseHttpsRedirection();
 
-// app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000"));
 

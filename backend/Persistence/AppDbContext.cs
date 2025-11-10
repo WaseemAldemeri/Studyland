@@ -1,15 +1,17 @@
 ﻿using Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
-public class AppDbContext(DbContextOptions options) : DbContext(options)
+public class AppDbContext(DbContextOptions options)
+    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
 {
-    public DbSet<User> Users { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<Topic> Topics { get; set; }
     public DbSet<Award> Awards { get; set; }
-    
+
 
     // this to make timespan save correctly in sql db
     protected override void OnModelCreating(ModelBuilder modelBuilder)

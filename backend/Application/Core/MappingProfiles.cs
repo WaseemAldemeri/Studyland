@@ -1,7 +1,9 @@
+using Application.Accounts.Commands;
 using Application.Sessions.Commands;
 using Application.Stats.Queries;
 using AutoMapper;
 using Domain;
+using Dtos.Accounts;
 using Dtos.Awards;
 using Dtos.Sessions;
 using Dtos.Stats;
@@ -34,5 +36,14 @@ public class MappingProfiles : Profile
 
 
         CreateMap<GetDashboardStatsQueryDto, GetDashboardStats.Query>();
+
+        CreateMap<RegisterRequestDto, Register.Command>();
+        // username is treated as email in identity
+        CreateMap<Register.Command, User>()
+            .ForMember(dest => dest.UserName, opt =>
+                opt.MapFrom(src => src.DisplayName)
+            );
+
+        CreateMap<LoginRequestDto, Login.Command>();
     }
 }
