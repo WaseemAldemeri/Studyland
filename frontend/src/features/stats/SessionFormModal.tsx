@@ -64,10 +64,10 @@ export function SessionFormModal({
       form.reset({
         startedAt: defaultStartTime,
         duration: "01:00",
-        topicId: "",
+        topicId: allTopics.find(t => t.title === "Uncategorized")?.id,
       });
     }
-  }, [sessionToEdit, isOpen, form, selectedDay]);
+  }, [sessionToEdit, isOpen, form, selectedDay, allTopics]);
 
   const { mutate: createSession, isPending: isCreating } = useMutation({
     mutationFn: (payload: CreateSessionDto) => SessionsService.createSession(payload),

@@ -35,25 +35,11 @@ export default function RegisterPage() {
       toast.success("Account Created!", {
         description: "You have successfully registered. Please log in.",
       });
-      // Redirect to the login page after successful registration
       navigate("/login");
     },
-    // onError: (error: any) => {
-    //   // Handle validation errors from the backend (e.g., duplicate email)
-    //   if (error.response?.status === 400) {
-    //     // You can parse the backend errors and set them on the form fields
-    //     const errorData = error.response.data;
-    //     if (errorData.errors) {
-    //         for (const key in errorData.errors) {
-    //             form.setError(key.toLowerCase() as any, { message: errorData.errors[key][0] });
-    //         }
-    //     } else {
-    //         toast.error("Registration Failed", { description: "An unknown validation error occurred." });
-    //     }
-    //   } else {
-    //     // Global interceptor will handle other errors (500, etc.)
-    //   }
-    // },
+    onError: (error: string[]) => {
+        toast.error(error.join("\n - "), {duration: 6000, closeButton: true, position: "top-center" })
+    },
   });
 
   const onSubmit = (data: RegisterForm) => {

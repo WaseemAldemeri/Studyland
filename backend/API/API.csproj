@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="../Persistence/Persistence.csproj" />
     <ProjectReference Include="../Domain/Domain.csproj" />
+    <ProjectReference Include="../SeedDb/SeedDb.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Dtos\Dtos.csproj" />
   </ItemGroup>

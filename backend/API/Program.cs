@@ -16,6 +16,8 @@ using Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Migrations.Internal;
+using SeedDb;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +48,11 @@ builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator
 builder.Services.AddTransient<ExceptionMiddleware>();
 builder.Services.AddIdentityApiEndpoints<User>(opts =>
 {
+    opts.Password.RequireDigit = false;
+    opts.Password.RequiredLength = 6;
+    opts.Password.RequiredUniqueChars = 0;
+    opts.Password.RequireNonAlphanumeric = false;
+    opts.Password.RequireUppercase = false;
     opts.User.RequireUniqueEmail = true;
 }
 ).AddRoles<IdentityRole<Guid>>()
@@ -103,12 +110,15 @@ try
 {
     var context = services.GetRequiredService<AppDbContext>();
     await context.Database.MigrateAsync();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await SeedDb.Migrator.Seed(userManager, context);
 }
 catch (Exception ex)
 {
     var logger = services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "An Error occured during database migration.");
 }
+
 
 try
 {
