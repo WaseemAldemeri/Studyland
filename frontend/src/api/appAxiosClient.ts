@@ -27,7 +27,7 @@ appAxiosClient.interceptors.response.use(
 
   (error: AxiosError) => {
 
-    console.error(`API Error When Requested EndPoint: ${error.config?.url}`, error);
+    console.error(`API Error When Requested EndPoint: ${error.config?.url}`, error.response ?? error);
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const {status, data}: {status: number, data: any} = error.response! ?? null;

@@ -1,23 +1,32 @@
 // src/pages/RegisterPage.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
-import { toast } from "sonner";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { registerSchema, type RegisterForm } from "@/lib/schemas/authValidation";
-import { AccountService, type RegisterRequestDto } from "@/api/generated";
+import {
+  registerSchema,
+  type RegisterForm,
+} from "@/lib/schemas/authValidation";
 import { BrainCircuit } from "lucide-react";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -26,22 +35,12 @@ export default function RegisterPage() {
       password: "",
       confirmPassword: "",
     },
-    mode: "onTouched"
+    mode: "onTouched",
   });
 
-  const { mutate: registerUser, isPending } = useMutation({
-    mutationFn: (data: RegisterRequestDto) => AccountService.register(data),
-    onSuccess: () => {
-      toast.success("Account Created!", {
-        description: "You have successfully registered. Please log in.",
-      });
-      navigate("/login");
-    },
-    onError: (error: string[]) => {
-        toast.error(error.join("\n - "), {duration: 6000, closeButton: true, position: "top-center" })
-    },
-  });
-
+  const {
+    registerUserMtn: { mutate: registerUser, isPending },
+  } = useAccount();
   const onSubmit = (data: RegisterForm) => {
     // The Zod schema doesn't include 'confirmPassword' in the final data
     // because it's only for validation. We pass the rest to the API.
@@ -55,8 +54,12 @@ export default function RegisterPage() {
           <div className="flex justify-center items-center mb-4">
             <BrainCircuit className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Create Your Studyland Account</CardTitle>
-          <CardDescription>Join the community and start tracking your progress</CardDescription>
+          <CardTitle className="text-2xl">
+            Create Your Studyland Account
+          </CardTitle>
+          <CardDescription>
+            Join the community and start tracking your progress
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -70,7 +73,9 @@ export default function RegisterPage() {
                     <FormControl>
                       <Input placeholder="Your Name" {...field} />
                     </FormControl>
-                    <div className="h-5"><FormMessage /></div>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -83,7 +88,9 @@ export default function RegisterPage() {
                     <FormControl>
                       <Input placeholder="name@example.com" {...field} />
                     </FormControl>
-                    <div className="h-5"><FormMessage /></div>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -94,9 +101,15 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
                     </FormControl>
-                    <div className="h-5"><FormMessage /></div>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -107,9 +120,15 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
                     </FormControl>
-                    <div className="h-5"><FormMessage /></div>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />

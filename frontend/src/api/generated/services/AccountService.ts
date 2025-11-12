@@ -15,7 +15,7 @@ export class AccountService {
      * @returns LoginResponseDto OK
      * @throws ApiError
      */
-    public static login(
+    public static loginUser(
         requestBody: LoginRequestDto,
     ): CancelablePromise<LoginResponseDto> {
         return __request(OpenAPI, {
@@ -30,7 +30,7 @@ export class AccountService {
      * @returns any OK
      * @throws ApiError
      */
-    public static register(
+    public static registerUser(
         requestBody: RegisterRequestDto,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
@@ -41,23 +41,13 @@ export class AccountService {
         });
     }
     /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static logout(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/Account/logout',
-        });
-    }
-    /**
      * @returns UserDto OK
      * @throws ApiError
      */
-    public static userInfo(): CancelablePromise<UserDto> {
+    public static getCurrentUser(): CancelablePromise<UserDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/Account',
+            url: '/api/Account/current-use',
         });
     }
 }

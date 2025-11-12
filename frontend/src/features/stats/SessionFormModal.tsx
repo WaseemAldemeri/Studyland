@@ -63,7 +63,7 @@ export function SessionFormModal({
       defaultStartTime.setHours(12, 0, 0, 0);
       form.reset({
         startedAt: defaultStartTime,
-        duration: "01:00",
+        duration: "00:45",
         topicId: allTopics.find(t => t.title === "Uncategorized")?.id,
       });
     }

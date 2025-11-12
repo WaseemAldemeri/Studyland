@@ -1,8 +1,7 @@
 // src/pages/LoginPage.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,11 +20,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginForm } from "@/lib/schemas/authValidation";
-import { AccountService, type LoginRequestDto } from "@/api/generated";
 import { BrainCircuit } from "lucide-react";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -36,13 +34,7 @@ export default function LoginPage() {
   });
 
   // The useMutation hook from React Query to handle the API call
-  const { mutate: loginUser, isPending } = useMutation({
-    mutationFn: (data: LoginRequestDto) => AccountService.login(data),
-    onSuccess: (data) => {
-      localStorage.setItem("access-token", data.accessToken);
-      navigate("/dashboard");
-    },
-  });
+  const { loginUserMtn: {mutate: loginUser, isPending} } = useAccount();
 
   const onSubmit = (data: LoginForm) => {
     loginUser(data);

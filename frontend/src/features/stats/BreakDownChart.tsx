@@ -1,6 +1,6 @@
 // src/components/stats/BreakdownChart.tsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PieChart,
@@ -19,14 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMemo } from "react";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 interface BreakdownChartProps {
   userTopicBreakdowns: StatsDto["usersTopicBreakDowns"];
   // We need a list of all users being queried to populate the dropdown
   usersInQuery: UserDto[];
   isLoading: boolean;
-  // We need the current user's ID to select them by default
-  currentUserId: string;
 }
 
 // Color palette for the pie chart segments
@@ -41,12 +40,18 @@ const TOPIC_COLORS = [
 
 export function BreakdownChart({
   userTopicBreakdowns,
-  usersInQuery,
   isLoading,
-  currentUserId,
 }: BreakdownChartProps) {
   // State to manage which user is selected in the dropdown
-  const [selectedUserId, setSelectedUserId] = useState(currentUserId);
+  const { currentUser } = useAccount();
+
+  const [selectedUserId, setSelectedUserId] = useState(currentUser?.id);
+
+  useEffect(() => {
+    if (currentUser && !selectedUserId) {
+      setSelectedUserId(currentUser.id);
+    }
+  }, [currentUser, selectedUserId]); // Run this effect when currentUser changes
 
   // useMemo to find the data for the selected user.
   // This will only re-calculate when the breakdowns or selected user changes.
@@ -55,13 +60,18 @@ export function BreakdownChart({
       (utb) => utb.user.id === selectedUserId
     );
 
-    if (!userData) return [];
+    if (!userData) {
+      setSelectedUserId(currentUser?.id);
+      return [];
+    }
 
     return userData.map((tb) => ({
       name: tb.topic.title,
       value: tb.totalStudyTimeHours,
     }));
-  }, [userTopicBreakdowns, selectedUserId]);
+  }, [userTopicBreakdowns, selectedUserId, currentUser]);
+
+  const usersInQuery = userTopicBreakdowns.map((utb) => utb.user);
 
   if (isLoading) {
     return (
@@ -122,7 +132,7 @@ export function BreakdownChart({
               fill="#8884d8"
               dataKey="value"
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={TOPIC_COLORS[index % TOPIC_COLORS.length]}

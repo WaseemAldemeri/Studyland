@@ -12,6 +12,7 @@ import { StatCard } from "./StatCard";
 import { ActivityChart } from "./ActivityChart";
 import { BreakdownChart } from "./BreakDownChart";
 import { SessionsDataTable } from "./SessionsDataTable";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 // Helper function to get the default date range for the last 7 days
 const getDefaultDateRange = () => {
@@ -25,8 +26,6 @@ const getDefaultDateRange = () => {
   return { startDate, endDate };
 };
 
-const CURRENT_USER_ID = "d8c22579-d804-4a30-8130-3f83d52b4ebd";
-
 export default function StatsPage() {
   // --- STATE MANAGEMENT FOR FILTERS ---
   // This is the single source of truth for all filters on this page.
@@ -34,6 +33,8 @@ export default function StatsPage() {
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [selectedDay, setSelectedDay] = useState<string>(new Date().toLocaleDateString());
+  
+  const {currentUser} = useAccount();
 
   const handleDaySelect = (date: string) => {
     setSelectedDay(date);
@@ -78,7 +79,7 @@ export default function StatsPage() {
     // This prevents the UI from flickering.
   });
 
-  const myKpis = stats?.usersKpis.find((uk) => uk.user.id === CURRENT_USER_ID);
+  const myKpis = stats?.usersKpis.find((uk) => uk.user.id === currentUser?.id);
 
   // Define the data for our KPI cards in an array to keep the JSX clean
   const kpiCardData = [
@@ -106,6 +107,8 @@ export default function StatsPage() {
   }, [stats]);
 
   const handleDateChange = (newDates: { startDate?: Date; endDate?: Date }) => {
+    newDates.startDate?.setHours(0, 0, 0, 0);
+    newDates.endDate?.setHours(23, 59, 59, 999);
     setDateRange((prev) => ({
       startDate: newDates.startDate ?? prev.startDate,
       endDate: newDates.endDate ?? prev.endDate,
@@ -137,7 +140,7 @@ export default function StatsPage() {
           allTopics={allTopics ?? []}
           selectedTopicIds={selectedTopicIds}
           onTopicsChange={setSelectedTopicIds}
-          allUsers={allUsers ?? []}
+          allUsers={allUsers?.filter(u => u.id != currentUser?.id) ?? []}
           selectedUserIds={selectedUserIds}
           onUsersChange={setSelectedUserIds}
         />
@@ -171,7 +174,6 @@ export default function StatsPage() {
           userTopicBreakdowns={stats?.usersTopicBreakDowns ?? []}
           usersInQuery={usersInQuery}
           isLoading={statsLoading}
-          currentUserId={CURRENT_USER_ID} // Pass the hardcoded current user ID
         />
       </div>
       <SessionsDataTable selectedDay={selectedDay} handleDaySelect={handleDaySelect} />
