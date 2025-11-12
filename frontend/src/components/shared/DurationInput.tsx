@@ -2,7 +2,7 @@ import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { cn, formatDuration, parseDuration } from "@/lib/utils";
+import { cn, formatDuration, parseDuration } from "@/lib/utils/utils";
 
 
 type DurationInputProps = React.InputHTMLAttributes<HTMLInputElement> & {

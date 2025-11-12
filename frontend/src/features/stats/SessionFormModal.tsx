@@ -22,7 +22,7 @@ import {
   type CreateSessionDto,
   type UpdateSessionDto,
 } from "@/api/generated";
-import { parseDurationToMs } from "@/lib/utils";
+import { parseDurationToMs } from "@/lib/utils/utils";
 
 interface SessionFormModalProps {
   isOpen: boolean;

@@ -14,14 +14,13 @@ export const useAccount = () => {
     mutationFn: (data: LoginRequestDto) => AccountService.loginUser(data),
     onSuccess: (data) => {
       localStorage.setItem("access-token", data.accessToken);
-      queryClient.removeQueries({ queryKey: ["user"] });
-      router.navigate("/dashboard");
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
 
   const logoutUser = () => {
     localStorage.removeItem("access-token");
-    queryClient.removeQueries({ queryKey: ["user"] });
+    queryClient.setQueryData(["user"], null);
     router.navigate("/login");
   };
 
@@ -39,7 +38,7 @@ export const useAccount = () => {
     },
   });
 
-  const { data: currentUser, isLoading: currentUserLoading } = useQuery({
+  const { data: currentUser, isFetching: currentUserLoading } = useQuery({
     queryKey: ["user"],
     queryFn: () => AccountService.getCurrentUser(),
     staleTime: 5 * 60 * 1000, // 5 minutes

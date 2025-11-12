@@ -6,5 +6,6 @@ export type UserDto = {
     id: string;
     displayName: string;
     dateJoined: string;
+    email: string;
 };
 

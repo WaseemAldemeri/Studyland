@@ -1,7 +1,7 @@
 // src/pages/LoginPage.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,12 +32,17 @@ export default function LoginPage() {
     },
     mode: "onTouched"
   });
+  
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // The useMutation hook from React Query to handle the API call
   const { loginUserMtn: {mutate: loginUser, isPending} } = useAccount();
 
   const onSubmit = (data: LoginForm) => {
-    loginUser(data);
+    loginUser(data, {onSuccess: () => {
+      navigate(location.state?.from ?? "/dashboard")
+    },});
   };
 
   return (

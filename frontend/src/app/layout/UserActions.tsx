@@ -9,8 +9,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Settings, LogOut } from "lucide-react";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 export function UserActions() {
+  const { currentUser, logoutUser } = useAccount();
+
+  // If there is no user, don't render anything.
+  if (!currentUser) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -24,12 +32,14 @@ export function UserActions() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Waseem</p>
+            <p className="text-sm font-medium leading-none">
+              {currentUser?.displayName}
+            </p>
             <p className="text-xs leading-none text-foreground/70">
-              waseem@example.com
+              {currentUser?.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -43,7 +53,7 @@ export function UserActions() {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={logoutUser}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
