@@ -26,7 +26,7 @@ public class Migrator
 
 
         Console.WriteLine("Step 1: Preparing destination database (studyland.db)...");
-        await newDbContext.Database.MigrateAsync();
+        // await newDbContext.Database.MigrateAsync();
 
         Console.WriteLine("\nStep 2: Reading all data from source database (nerds.db)...");
         await using var sqliteConnection = new SqliteConnection(oldConnectionString);
@@ -90,9 +90,13 @@ public class Migrator
 
         Console.WriteLine("\nStep 3: Transforming and seeding data...");
 
+        var guild = await newDbContext.Guilds.AddAsync(new() { Name = "Main" });
+        var chatChannel = newDbContext.ChatChannels.AddAsync(new() { Name = "General", GuildId = guild.Entity.Id});
+
 
         var usersToAdd = oldUsers.Where(u => DiscordToNameMap.ContainsKey(u.id)).Select(user => new User()
         {
+            GuildId = guild.Entity.Id,
             DiscordId = user.id,
             DisplayName = DiscordToNameMap.First(x => x.Key == user.id).Value,
             DateJoined = DateTimeOffset.FromUnixTimeMilliseconds(user.date),
