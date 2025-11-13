@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SessionFormModal } from "./SessionFormModal";
+import { useAccount } from "@/lib/hooks/useAccount";
 
 interface SessionsDataTableProps {
   selectedDay: string | null;
@@ -50,6 +51,8 @@ export function SessionsDataTable({
   handleDaySelect,
 }: SessionsDataTableProps) {
   const queryClient = useQueryClient();
+  
+  const {currentUser} = useAccount();
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   // This will hold the session data when editing, or be null when creating
@@ -206,7 +209,7 @@ export function SessionsDataTable({
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-primary">
           {selectedDay
-            ? `Sessions for ${selectedDay}`
+            ? `Sessions for ${currentUser?.displayName ?? selectedDay}`
             : "Select a day to see details"}
         </h2>
         <div className="flex items-center gap-2">

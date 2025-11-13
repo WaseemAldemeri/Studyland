@@ -1,4 +1,4 @@
-using Application.Core;
+using Application.Core.Extensions;
 using AutoMapper;
 using Domain;
 using Dtos.Accounts;

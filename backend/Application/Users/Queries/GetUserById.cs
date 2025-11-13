@@ -4,6 +4,7 @@ using Dtos.Users;
 using AutoMapper;
 using FluentValidation;
 using Application.Core;
+using Application.Core.Extensions;
 
 namespace Application.Users.Queries;
 

@@ -5,6 +5,7 @@ using AutoMapper;
 using Domain;
 using FluentValidation;
 using Application.Core;
+using Application.Core.Extensions;
 
 namespace Application.Sessions.Commands;
 

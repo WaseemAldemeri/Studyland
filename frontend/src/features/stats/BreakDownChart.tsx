@@ -71,7 +71,13 @@ export function BreakdownChart({
     }));
   }, [userTopicBreakdowns, selectedUserId, currentUser]);
 
-  const usersInQuery = userTopicBreakdowns.map((utb) => utb.user);
+  const allUsers = userTopicBreakdowns.map((utb) => utb.user);
+  const uniqueUsers = allUsers.reduce((acc: UserDto[], user) => {
+    if (!acc.some((u) => u.id === user.id)) {
+      acc.push(user);
+    }
+    return acc;
+  }, []); 
 
   if (isLoading) {
     return (
@@ -110,7 +116,7 @@ export function BreakdownChart({
               <SelectValue placeholder="Select user..." />
             </SelectTrigger>
             <SelectContent>
-              {usersInQuery.map((user) => (
+              {uniqueUsers.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
                   {user.displayName}
                 </SelectItem>

@@ -168,6 +168,7 @@ export default function StatsPage() {
           dailyActivities={stats?.dailyActivities ?? []}
           isLoading={statsLoading}
           onDayClick={handleDaySelect}
+          periodDays={stats?.totalDays}
         />
 
         <BreakdownChart

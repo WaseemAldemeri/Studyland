@@ -1,3 +1,4 @@
+import { FullPageLoader } from "@/components/shared/FullPageLoader";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { Outlet, useLocation, useNavigate } from "react-router";
 
@@ -7,7 +8,7 @@ export default function RequireAuth() {
   
   const location = useLocation();
 
-  if (currentUserLoading) return <div>Loading...</div>;
+  if (currentUserLoading) return <FullPageLoader />;
 
   if (!currentUser) navigate("/login", {state: {from: location} });
 

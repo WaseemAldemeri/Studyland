@@ -26,6 +26,7 @@ interface ActivityChartProps {
   dailyActivities: StatsDto["dailyActivities"];
   isLoading: boolean;
   onDayClick: (date: string) => void;
+  periodDays?: number;
 }
 
 // A simple color palette for the users in the chart
@@ -35,6 +36,7 @@ export function ActivityChart({
   dailyActivities,
   isLoading,
   onDayClick,
+  periodDays
 }: ActivityChartProps) {
   // useMemo is a React hook that memoizes the result of a calculation.
   // This transformation will only re-run if 'dailyActivities' changes.
@@ -104,7 +106,7 @@ export function ActivityChart({
   return (
     <Card className="lg:col-span-2 h-96">
       <CardHeader>
-        <CardTitle>Study Activity Over Time</CardTitle>
+        <CardTitle>Study Activity over the past {periodDays} days.</CardTitle>
       </CardHeader>
       <CardContent>
         {/* ResponsiveContainer makes the chart fill its parent container */}

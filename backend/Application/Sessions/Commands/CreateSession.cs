@@ -4,7 +4,7 @@ using MediatR;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
-using Application.Core;
+using Application.Core.Extensions;
 
 namespace Application.Sessions.Commands;
 

@@ -5,7 +5,7 @@ using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using Dtos.Sessions;
 using FluentValidation;
-using Application.Core;
+using Application.Core.Extensions;
 
 namespace Application.Sessions.Queries;
 

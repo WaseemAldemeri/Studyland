@@ -2,8 +2,7 @@ using Domain;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Core;
-
+namespace Application.Core.Extensions;
 
 public static class ValidationExtensions
 {

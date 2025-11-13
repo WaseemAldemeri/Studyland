@@ -1,4 +1,4 @@
-using Application.Core;
+using Application.Core.Extensions;
 using AutoMapper;
 using Domain;
 using Dtos.Stats;
@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Stats.Queries;
+
 
 public class GetDashboardStats
 {
@@ -71,7 +72,6 @@ public class GetDashboardStats
                     Topic = mapper.Map<TopicDto>(g.Key.Topic),
                     TotalStudyTimeHours = g.Sum(s => s.Duration.TotalHours),
                     User = mapper.Map<UserDto>(g.Key.User)
-
                 })
                 .ToList();
         }
@@ -93,7 +93,6 @@ public class GetDashboardStats
 
         private List<StatsDto.DailyActivity> GetDailyActivitys(IEnumerable<Session> sessions)
         {
-
             return sessions
                 .GroupBy(s => new { Date = DateOnly.FromDateTime(s.StartedAt.Date), s.User })
                 .Select(g => new StatsDto.DailyActivity()
@@ -106,6 +105,7 @@ public class GetDashboardStats
                 .ToList();
         }
     }
+    
 
 
     public class Validator : AbstractValidator<Query>
