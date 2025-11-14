@@ -6,6 +6,6 @@ public class ChatChannel : IDomainEntity
     public required string Name { get; set; }
 
     public required Guid GuildId { get; set; }
-    public Guid? Guild { get; set; }
+    public Guild? Guild { get; set; }
     public ICollection<ChatMessage> Messages { get; set; } = [];
 }

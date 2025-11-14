@@ -5,6 +5,7 @@ using AutoMapper;
 using Domain;
 using Dtos.Accounts;
 using Dtos.Awards;
+using Dtos.Chat;
 using Dtos.Sessions;
 using Dtos.Stats;
 using Dtos.Topics;
@@ -45,5 +46,8 @@ public class MappingProfiles : Profile
             );
 
         CreateMap<LoginRequestDto, Login.Command>();
+        
+
+        CreateMap<ChatMessage, ChatMessageDto>();
     }
 }
