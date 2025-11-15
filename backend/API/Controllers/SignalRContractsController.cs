@@ -12,6 +12,7 @@ namespace API.Controllers;
 public class SignalRContractsController : BaseApiController
 {
     // Dummy method to "use" the DTOs
+    [HttpGet(Name = "Types")]
     public Task<ActionResult<UserPressenceDto>> GetSignalRTypes()
     {
         // This code is never meant to be called.

@@ -11,15 +11,17 @@ using Persistence;
 
 namespace API.Services.ChatPressence;
 
-public class ChannelPressence(AppDbContext context, IMediator mediator, IMapper mapper, Guid channelId)
+public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
 {
     private readonly ConcurrentDictionary<Guid, UserPressenceDto> _users = new();
-
     public Guid Id { get; set; } = channelId;
-    
-    public bool IsEmpty => _users.IsEmpty;
 
+    public bool IsEmpty => _users.IsEmpty;
     public List<UserPressenceDto> Users => [.. _users.Select(kv => kv.Value)];
+
+    private static IMediator GetMediator(IServiceScope scope) => scope.ServiceProvider.GetRequiredService<IMediator>();
+    private static IMapper GetMapper(IServiceScope scope) => scope.ServiceProvider.GetRequiredService<IMapper>();
+    private static AppDbContext GetContext(IServiceScope scope) => scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     private async Task<UserPressenceDto> GetUserPressense(Guid userId)
     {
@@ -27,6 +29,10 @@ public class ChannelPressence(AppDbContext context, IMediator mediator, IMapper 
         {
             return userPressense;
         }
+
+        using var scope = scopeFactory.CreateScope();
+        var context = GetContext(scope);
+        var mapper = GetMapper(scope);
 
         return _users.GetOrAdd(userId, new UserPressenceDto()
         {
@@ -57,6 +63,10 @@ public class ChannelPressence(AppDbContext context, IMediator mediator, IMapper 
         var userPressense = await GetUserPressense(userId);
         if (userPressense.Status == PressenceStatus.STUDYING) return userPressense;
 
+        using var scope = scopeFactory.CreateScope();
+        var context = GetContext(scope);
+        var mapper = GetMapper(scope);
+
         userPressense.Status = PressenceStatus.STUDYING;
         userPressense.StartedAt = DateTimeOffset.Now;
         userPressense.Topic = await context.Topics.ProjectTo<TopicDto>(mapper.ConfigurationProvider)
@@ -78,12 +88,15 @@ public class ChannelPressence(AppDbContext context, IMediator mediator, IMapper 
             Duration = TimeSpan.FromTicks(DateTimeOffset.Now.Ticks - userPressense.StartedAt.Ticks)
         };
 
+        using var scope = scopeFactory.CreateScope();
+        var mediator = GetMediator(scope);
+
         await mediator.Send(command);
 
         userPressense.Status = PressenceStatus.ONLINE;
         userPressense.StartedAt = DateTimeOffset.Now;
         userPressense.Topic = null;
-        
+
         return userPressense;
     }
 }

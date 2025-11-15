@@ -21,26 +21,23 @@ public class GetChatMessages
     {
         public async Task<List<ChatMessageDto>> Handle(Query request, CancellationToken cancellationToken)
         {
-            if (!await context.ChatChannels.AnyAsync(c => c.Id == request.ChannelId, cancellationToken))
-            {
-                throw RestException.NotFound("The requested channel does not exist");
-            }
-            
             var messages = await context.ChatMessages
                 .Where(m => m.ChannelId == request.ChannelId)
                 .OrderBy(m => m.Timestamp)
                 .ProjectTo<ChatMessageDto>(mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
-            
+
             return messages;
         }
     }
 
     public class Validator : AbstractValidator<Query>
     {
-        public Validator()
+        public Validator(AppDbContext context)
         {
-            RuleFor(x => x.ChannelId).Required();
+            RuleFor(x => x.ChannelId)
+                .Required()
+                .MustExistInDb(context.ChatChannels);
         }
     }
 }

@@ -1,5 +1,3 @@
-// src/components/dashboard/ChatPanel.tsx
-
 import { mockChatMessages } from "@/data/mockData";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

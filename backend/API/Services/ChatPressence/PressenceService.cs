@@ -1,13 +1,10 @@
 using System.Collections.Concurrent;
-using AutoMapper;
-using MediatR;
 using Microsoft.AspNetCore.SignalR;
-using Persistence;
 
 namespace API.Services.ChatPressence;
 
 
-public class PressenceService(AppDbContext context, IMediator mediator, IMapper mapper)
+public class PressenceService(IServiceScopeFactory scopeFactory)
 {
     private record Connection(Guid ChannelId, Guid UserId);
 
@@ -17,7 +14,7 @@ public class PressenceService(AppDbContext context, IMediator mediator, IMapper 
         _channels = new();
 
     private ChannelPressence GetChannel(Guid channelId) =>
-        _channels.GetOrAdd(channelId, new ChannelPressence(context, mediator, mapper, channelId));
+        _channels.GetOrAdd(channelId, new ChannelPressence(scopeFactory, channelId));
 
     public ChannelPressence GetChannelFromConnectionId(string connectionId)
     {
