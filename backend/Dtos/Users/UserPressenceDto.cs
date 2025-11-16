@@ -1,14 +1,13 @@
 using Dtos.Topics;
-using Dtos.Users;
 
-namespace API.Services.ChatPressence;
+namespace Dtos.Users;
 
 
 public class UserPressenceDto
 {
     public required UserDto User { get; set; }
-    public required PressenceStatus Status { get; set; }
-    public TopicDto? Topic { get; set; }
+    public PressenceStatus Status { get; set; } = PressenceStatus.OFFLINE;
+    public TopicDto? Topic { get; set; } = null;
     public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.Now;
 }
 
@@ -19,3 +18,4 @@ public enum PressenceStatus
     ONLINE,
     OFFLINE
 }
+
