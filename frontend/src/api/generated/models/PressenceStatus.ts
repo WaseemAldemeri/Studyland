@@ -2,4 +2,4 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PressenceStatus = number;
+export type PressenceStatus = 'STUDYING' | 'ON_BREAK' | 'ONLINE' | 'OFFLINE';

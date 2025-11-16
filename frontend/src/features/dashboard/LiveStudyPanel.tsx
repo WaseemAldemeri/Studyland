@@ -1,6 +1,3 @@
-// src/components/dashboard/LiveStudyPanel.tsx
-
-import { mockLiveSessions, mockTopics } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,42 +9,79 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, Play, StopCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { toast } from "sonner";
+import { TickingTimer } from "./TickingTimer";
 
-// This is the shape of the data for the current user's session
-interface CurrentUserSession {
-  isStudying: boolean;
-  startTime: Date | null;
-  selectedTopicId: string | null;
+// Import the DTOs
+import type { UserPressenceDto, TopicDto, PressenceStatus } from "@/api/generated";
+import { useSounds } from "@/lib/hooks/useSounds";
+
+// --- 1. Define Props ---
+interface LiveStudyPanelProps {
+  presenceList: UserPressenceDto[];
+  topics: TopicDto[];
+  currentUserPresence?: UserPressenceDto;
+  onStartStudying: (topicId: string) => void;
+  onStopStudying: () => void;
 }
 
-export function LiveStudyPanel() {
-  // --- STATE ---
-  // This state will manage the current user's study session
-  const [currentUserSession, setCurrentUserSession] = useState<CurrentUserSession>({
-    isStudying: false,
-    startTime: null,
-    selectedTopicId: null,
-  });
-  
-  // For now, we'll use mock data for the list of live users
-  const liveUsers = mockLiveSessions;
-  const topics = mockTopics;
+// --- 2. Create a Status Sorter ---
+// This map assigns a "sort priority" to each status.
+const statusSortPriority: Record<PressenceStatus, number> = {
+  STUDYING: 1,
+  ONLINE: 2,
+  OFFLINE: 3,
+  ON_BREAK: 4, // You can adjust this order
+};
 
-  // --- HANDLERS ---
+export function LiveStudyPanel({
+  presenceList,
+  topics,
+  currentUserPresence,
+  onStartStudying,
+  onStopStudying,
+}: LiveStudyPanelProps) {
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  
+  const {playStartStudyingClickSound, playStopStudyingClickSound} = useSounds();
+
+  // --- 3. Derive State from Props ---
+  const isStudying = currentUserPresence?.status === "STUDYING";
+  
+  // --- 4. Create the Sorted Presence List ---
+  const sortedPresenceList = useMemo(() => {
+    // Make a copy to sort
+    return [...presenceList].sort((a, b) => {
+      // Rule 1: Current user always comes first
+      if (a.user.id === currentUserPresence?.user.id) return -1;
+      if (b.user.id === currentUserPresence?.user.id) return 1;
+
+      // Rule 2: Sort by status priority
+      const statusA = statusSortPriority[a.status];
+      const statusB = statusSortPriority[b.status];
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+
+      // Rule 3: Tie-breaker (sort alphabetically)
+      return a.user.displayName.localeCompare(b.user.displayName);
+    });
+  }, [presenceList, currentUserPresence]);
+
+  // --- 5. Handlers ---
   const handleStartStudying = () => {
-    if (!currentUserSession.selectedTopicId) {
-      alert("Please select a topic first!");
+    if (!selectedTopicId) {
+      toast.error("Please select a topic first!");
       return;
     }
-    setCurrentUserSession({ ...currentUserSession, isStudying: true, startTime: new Date() });
-    console.log("Started studying topic:", currentUserSession.selectedTopicId);
+    onStartStudying(selectedTopicId);
+    playStartStudyingClickSound();
   };
 
   const handleStopStudying = () => {
-    setCurrentUserSession({ ...currentUserSession, isStudying: false, startTime: null });
-    // In the future, we will calculate duration and send to the backend here.
-    console.log("Stopped studying.");
+    onStopStudying();
+    playStopStudyingClickSound();
   };
 
   return (
@@ -60,56 +94,97 @@ export function LiveStudyPanel() {
       </CardHeader>
       <CardContent className="flex flex-col flex-1 gap-6">
         {/* --- Current User's Controls --- */}
-        <div className="space-y-4 p-4 bg-secondary/50 rounded-lg">
+        <div className="space-y-4 py-2 bg-secondary/50 rounded-lg">
           <Select
-            onValueChange={(value) => setCurrentUserSession({ ...currentUserSession, selectedTopicId: value })}
-            disabled={currentUserSession.isStudying}
+            onValueChange={(value) => setSelectedTopicId(value)}
+            disabled={isStudying}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a topic..." />
             </SelectTrigger>
             <SelectContent>
-              {topics.map(topic => (
-                <SelectItem key={topic.id} value={topic.id}>{topic.title}</SelectItem>
+              {topics.map((topic) => (
+                <SelectItem key={topic.id} value={topic.id}>
+                  {topic.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          {!currentUserSession.isStudying ? (
+          {!isStudying ? (
             <Button className="w-full" onClick={handleStartStudying}>
               <Play className="mr-2 h-4 w-4" />
               Start Studying
             </Button>
           ) : (
-            <Button variant="destructive" className="w-full bg-red-300" onClick={handleStopStudying}>
+            <Button
+              variant="destructive"
+              className="w-full bg-red-300"
+              onClick={handleStopStudying}
+            >
               <StopCircle className="mr-2 h-4 w-4" />
               Stop Studying
             </Button>
           )}
         </div>
 
-        {/* --- List of Other Studying Users --- */}
+        {/* --- 6. List of All Users (Sorted) --- */}
         <div className="flex-1 space-y-4 overflow-y-auto">
-          <h3 className="font-semibold">Currently Studying</h3>
-          {liveUsers.map(user => (
-            <div key={user.userId} className="flex items-center gap-4">
-              <Avatar>
-                <AvatarImage src={user.avatarUrl} />
-                <AvatarFallback>{user.displayName.substring(0, 2)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium">{user.displayName}</p>
-                <p className="text-sm text-foreground/70">{user.topic}</p>
-              </div>
-              <div className="flex items-center text-sm text-primary">
-                <Clock className="mr-1 h-4 w-4" />
-                {/* We will make this timer live in the next step */}
-                <span>1h 30m</span>
-              </div>
-            </div>
+          {/* We now render the new sorted list */}
+          {sortedPresenceList.map((p) => (
+            <LiveUserListItem 
+              key={p.user.id} 
+              presence={p} 
+              isCurrentUser={p.user.id === currentUserPresence?.user.id}
+            />
           ))}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// --- 7. Helper Component ---
+// I've created a sub-component to keep the list rendering clean
+function LiveUserListItem({ 
+  presence, 
+  isCurrentUser 
+}: { 
+  presence: UserPressenceDto, 
+  isCurrentUser: boolean 
+}) {
+  return (
+    <div className={`flex items-center gap-4 p-2 rounded-lg ${
+      isCurrentUser ? 'bg-primary/10' : ''
+    }`}>
+      <Avatar className="border-primary border">
+        <AvatarImage src={presence.user.displayName}  />
+        <AvatarFallback>
+          {presence.user.displayName.substring(0, 1)}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1">
+        <p className="font-medium">{presence.user.displayName}</p>
+        <p className="text-sm text-foreground/70">
+          {presence.status === "STUDYING" && presence.topic ? (
+            <span className="text-primary">{presence.topic.title}</span>
+          ) : (
+            <span className="italic">{presence.status.toLowerCase()}</span>
+          )}
+        </p>
+      </div>
+
+      {presence.status === "STUDYING" && (
+        <div className="flex items-center text-sm text-primary">
+          <Clock className="mr-1 h-4 w-4" />
+          <TickingTimer startTime={presence.startedAt} />
+        </div>
+      )}
+
+      {presence.status === "ONLINE" && (
+        <div className="w-2 h-2 bg-green-500 rounded-full" />
+      )}
+    </div>
   );
 }

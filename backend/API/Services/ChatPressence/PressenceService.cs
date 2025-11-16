@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Dtos.Users;
 using Microsoft.AspNetCore.SignalR;
 
 namespace API.Services.ChatPressence;
@@ -28,18 +29,22 @@ public class PressenceService(IServiceScopeFactory scopeFactory)
         return await GetChannel(channelId).AddUser(userId);
     }
 
-    public async Task RemoveConnection(string connectionId)
+    public async Task<UserPressenceDto?> RemoveConnection(string connectionId)
     {
         if (_connectionMap.TryGetValue(connectionId, out var connection))
         {
             var channel = GetChannel(connection.ChannelId);
-            await channel.RemoveUser(connection.UserId);
+            var userPressense = await channel.RemoveUser(connection.UserId);
 
             if (channel.IsEmpty)
             {
                 // this to free the memory to get cleaned by gc
                 _channels.TryRemove(channel.Id, out _);
             }
+            
+            return userPressense;
         }
+
+        return null;
     }
 }

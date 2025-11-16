@@ -2,11 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UserDto = {
+export type ChatChannelDto = {
     id: string;
-    displayName: string;
-    dateJoined: string;
-    email: string;
-    guildId: string;
+    name: string;
 };
 

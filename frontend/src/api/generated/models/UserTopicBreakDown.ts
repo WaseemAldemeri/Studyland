@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { TopicDto } from './TopicDto';
+import type { TopicDto2 } from './TopicDto2';
 import type { UserDto } from './UserDto';
 export type UserTopicBreakDown = {
-    topic: TopicDto;
+    topic: TopicDto2;
     totalStudyTimeHours: number;
     user: UserDto;
 };

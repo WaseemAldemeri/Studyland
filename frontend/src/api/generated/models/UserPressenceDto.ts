@@ -3,12 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { PressenceStatus } from './PressenceStatus';
-import type { TopicDto2 } from './TopicDto2';
+import type { TopicDto } from './TopicDto';
 import type { UserDto } from './UserDto';
 export type UserPressenceDto = {
     user: UserDto;
-    status?: PressenceStatus;
-    topic?: TopicDto2;
-    startedAt?: string;
+    status: PressenceStatus;
+    topic?: TopicDto;
+    startedAt: string;
 };
 

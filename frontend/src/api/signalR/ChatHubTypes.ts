@@ -39,5 +39,5 @@ export type HubEventCallbacks = {
   [HubEvents.UserStartedStudying]: (user: UserPressenceDto) => void;
   [HubEvents.UserStoppedStudying]: (user: UserPressenceDto) => void;
   [HubEvents.UserJoinedChannel]: (user: UserPressenceDto) => void;
-  [HubEvents.UserLeftChannel]: (userId: string) => void;
+  [HubEvents.UserLeftChannel]: (userId: UserPressenceDto) => void;
 };

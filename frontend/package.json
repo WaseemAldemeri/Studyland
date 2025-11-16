@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate-api": "openapi --input http://localhost:5000/openapi/v1.json --output ./src/api/generated --client axios"
+    "generate-api": "openapi --input http://localhost:5000/openapi/v1.json --output ./src/api/generated --client axios --useUnionTypes"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

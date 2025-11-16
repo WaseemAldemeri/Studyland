@@ -1,9 +1,12 @@
 using Application.Core.Extensions;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Domain;
 using Dtos.Chat;
+using Dtos.Users;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.ChatMessages.Commands;
@@ -27,7 +30,16 @@ public class CreateChatMessage
             await context.ChatMessages.AddAsync(message, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
-            return mapper.Map<ChatMessageDto>(message);
+            var userDto = await context.Users
+                .Where(u => u.Id == request.UserId)
+                .ProjectTo<UserDto>(mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(cancellationToken);
+
+
+            var messageDto = mapper.Map<ChatMessageDto>(message);
+            messageDto.User = userDto!;
+
+            return messageDto;
         }
     }
 

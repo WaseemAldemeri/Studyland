@@ -1,7 +1,7 @@
 // src/components/dashboard/MyPersonalDesk.tsx
 
 import { mockDailyGoal, mockDailyLeaderboard, mockTodaySessions } from "@/data/mockData";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,13 +13,10 @@ const CURRENT_USER_NAME = "Waseem";
 export function PersonalDeskPanel() {
   const { goalHours, completedHours } = mockDailyGoal;
   const progressPercentage = (completedHours / goalHours) * 100;
+  
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle>My Personal Desk</CardTitle>
-      </CardHeader>
-      
       <CardContent className="flex-1 flex flex-col gap-8">
         {/* --- Section 1: Daily Goal Tracker --- */}
         <div className="space-y-2">

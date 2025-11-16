@@ -39,6 +39,7 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
             User = await context.Users.ProjectTo<UserDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new HubException("Can't Find User"),
+            Status = PressenceStatus.ONLINE
         });
     }
 
@@ -47,14 +48,18 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
         return await GetUserPressense(userId);
     }
 
-    public async Task RemoveUser(Guid userId)
+    public async Task<UserPressenceDto> RemoveUser(Guid userId)
     {
 
         if ((await GetUserPressense(userId)).Status == PressenceStatus.STUDYING)
         {
             await StopUserStudying(userId);
         }
-        _users.Remove(userId, out var _);
+        _users.Remove(userId, out var userPressence);
+
+        userPressence!.Status = PressenceStatus.OFFLINE;
+
+        return userPressence;
     }
 
 

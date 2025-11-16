@@ -21,7 +21,7 @@ public class GetGuildMembers
     {
         public async Task<List<UserPressenceDto>> Handle(Query request, CancellationToken cancellationToken)
         {
-            if (await context.Guilds.AnyAsync(g => g.Id == request.Id, cancellationToken))
+            if (!await context.Guilds.AnyAsync(g => g.Id == request.Id, cancellationToken))
                 throw RestException.NotFound("The Requested guild doesn't exist");
 
             return await context.Users

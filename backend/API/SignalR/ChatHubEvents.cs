@@ -28,7 +28,7 @@ public static class ChatHubEvents
     /// </summary>
     public const string UserJoinedChannel = "UserJoinedChannel";
     /// <summary>
-    /// Have a paylod of string UserId.
+    /// Have a paylod of UserPressenceDto.
     /// Client should update the specified user status and announce in the chat / notify.
     /// </summary>
     public const string UserLeftChannel = "UserLeftChannel";

@@ -16,9 +16,8 @@ using Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
-using SeedDb;
 using API.Services.ChatPressence;
+using API.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +33,7 @@ opts =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddCors();
+builder.Services.AddSignalR();
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -47,7 +47,7 @@ builder.Services.AddMediatR(opts =>
 builder.Services.AddAutoMapper(x => x.AddMaps(typeof(MappingProfiles).Assembly));
 builder.Services.AddValidatorsFromAssemblyContaining<GetDashboardStats.Validator>();
 builder.Services.AddTransient<ExceptionMiddleware>();
-builder.Services.AddIdentityApiEndpoints<User>(opts =>
+builder.Services.AddIdentity<User, IdentityRole<Guid>>(opts =>
 {
     opts.Password.RequireDigit = false;
     opts.Password.RequiredLength = 6;
@@ -58,6 +58,7 @@ builder.Services.AddIdentityApiEndpoints<User>(opts =>
 }
 ).AddRoles<IdentityRole<Guid>>()
 .AddEntityFrameworkStores<AppDbContext>();
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddAuthentication(options =>
 {
@@ -81,6 +82,26 @@ builder.Services.AddAuthentication(options =>
         // 3. We are not validating the audience
         ValidateAudience = false
     };
+
+    // This tells the handler how to find the token when
+    // SignalR connects via WebSocket
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Get the token from the query string
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our hub...
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/hubs/chat"))
+            {
+                // Read the token from the query string
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddSingleton<PressenceService>();
 
@@ -101,9 +122,14 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000"));
+app.UseCors(opts => opts
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .WithOrigins("http://localhost:3000"));
 
 app.MapControllers();
+app.MapHub<ChatHub>("api/hubs/chat");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
@@ -131,7 +157,7 @@ try
 catch (Exception ex)
 {
     var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An Error occured while Asserting Mappings.");
+    logger.LogError("An Error occured while Asserting Mappings. Error: {Message}", ex.Message);
 }
 
 

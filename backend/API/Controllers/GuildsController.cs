@@ -7,7 +7,7 @@ namespace API.Controllers;
 
 public class GuildsController : BaseApiController
 {
-    [HttpGet("{id}", Name = "GetGuildById")]
+    [HttpGet("{id}", Name = "GetGuild")]
     public async Task<ActionResult<GuildDto>> GetGuild(Guid id)
     {
         var query = new GetGuidDetails.Query() {Id = id};

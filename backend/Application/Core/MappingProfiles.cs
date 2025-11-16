@@ -1,4 +1,5 @@
 using Application.Accounts.Commands;
+using Application.ChatMessages.Commands;
 using Application.Sessions.Commands;
 using Application.Stats.Queries;
 using AutoMapper;
@@ -6,6 +7,7 @@ using Domain;
 using Dtos.Accounts;
 using Dtos.Awards;
 using Dtos.Chat;
+using Dtos.Guilds;
 using Dtos.Sessions;
 using Dtos.Stats;
 using Dtos.Topics;
@@ -19,7 +21,10 @@ public class MappingProfiles : Profile
     {
         CreateMap<Topic, TopicDto>();
         CreateMap<Award, AwardDto>();
+
         CreateMap<User, UserDto>();
+        CreateMap<User, UserPressenceDto>()
+            .ForMember(d => d.User, opt => opt.MapFrom(s => s));
 
         // Sessions Mappings
         CreateMap<Session, SessionDto>()
@@ -47,7 +52,10 @@ public class MappingProfiles : Profile
 
         CreateMap<LoginRequestDto, Login.Command>();
         
-
+        CreateMap<CreateChatMessage.Query, ChatMessage>();
         CreateMap<ChatMessage, ChatMessageDto>();
+
+        CreateMap<ChatChannel, ChatChannelDto>();
+        CreateMap<Guild, GuildDto>();
     }
 }

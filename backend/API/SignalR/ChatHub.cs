@@ -31,9 +31,12 @@ public class ChatHub(IMediator mediator, PressenceService pressenceService) : Hu
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        await CurrentGroup.SendAsync(ChatHubEvents.UserLeftChannel, CurrentUserId);
-        // we remove after because current group depends on the user data in the channel
-        await pressenceService.RemoveConnection(Context.ConnectionId);
+        // we assign first because current group depends on the user data in the channel
+        var currentChannelId = CurrentChannel.Id;
+
+        var userPressence = await pressenceService.RemoveConnection(Context.ConnectionId);
+
+        await Clients.Groups(currentChannelId.ToString()).SendAsync(ChatHubEvents.UserLeftChannel, userPressence);
     }
 
     public async Task SendMessage(string messageContent)
