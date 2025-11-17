@@ -5,12 +5,12 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 export default function RequireAuth() {
   const { currentUser, currentUserLoading } = useAccount();
   const navigate = useNavigate();
-  
+
   const location = useLocation();
 
   if (currentUserLoading) return <FullPageLoader />;
 
-  if (!currentUser) navigate("/login", {state: {from: location} });
+  if (!currentUser) navigate("/login", { state: { from: location } });
 
   return <Outlet />;
 }

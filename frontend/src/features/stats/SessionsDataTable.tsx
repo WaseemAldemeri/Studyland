@@ -179,6 +179,7 @@ export function SessionsDataTable({
               size="icon"
               className="h-8 w-8 text-destructive hover:text-destructive"
               onClick={() => deleteMutation.mutate(session.id)}
+              disabled={deleteMutation.isPending}
             >
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Delete Session</span>

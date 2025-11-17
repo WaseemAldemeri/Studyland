@@ -1,16 +1,49 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type UserPressenceDto, GuildsService } from "@/api/generated";
-import { type ChatHubClient } from "@/api/signalR/ChatHubClient";
+import {
+  type ChatMessageDto,
+  type UserDto,
+  type UserPressenceDto,
+  GuildsService,
+} from "@/api/generated";
 import { HubEvents } from "@/api/signalR/ChatHubTypes";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { useSounds } from "./useSounds";
+import { useSignalR } from "../context/SignalRContext";
 
-export function usePresence(client: ChatHubClient | null) {
+export function usePresence(channelId?: string) {
+  const client = useSignalR(); // 2. Get the global, persistent client
+
   const queryClient = useQueryClient();
   const { currentUser } = useAccount();
   const guildId = currentUser?.guildId;
-  const {playUserStartedStudyingSound, playUserStoppedStudyingSound} = useSounds();
+  const { playUserStartedStudyingSound, playUserStoppedStudyingSound } =
+    useSounds();
+
+  const sendLocalSystemMessage = useCallback((content: string) => {
+    const systemAuthor: UserDto = {
+      id: "system",
+      displayName: "System",
+      email: "",
+      dateJoined: new Date().toISOString(),
+      guildId: "",
+    };
+
+    const systemMessage: ChatMessageDto & { messageType?: "SYSTEM" } = {
+      id: crypto.randomUUID(),
+      content: "-- " + content + " --",
+      timestamp: new Date().toISOString(),
+      user: systemAuthor,
+      messageType: "SYSTEM",
+    };
+
+    queryClient.setQueryData(
+      ["chatMessages", channelId],
+      (oldData: ChatMessageDto[] | undefined) => {
+        return [...(oldData || []), systemMessage];
+      }
+    );
+  }, [queryClient, channelId]);
 
   // The 'master list' query
   const { data: presenceList, isLoading: isLoadingPresence } = useQuery({
@@ -34,7 +67,9 @@ export function usePresence(client: ChatHubClient | null) {
         queryKey,
         (oldData: UserPressenceDto[] | undefined) => {
           if (!oldData) return [];
-          return oldData.map((member) => activeMap.get(member.user.id) || member);
+          return oldData.map(
+            (member) => activeMap.get(member.user.id) || member
+          );
         }
       );
     };
@@ -52,16 +87,26 @@ export function usePresence(client: ChatHubClient | null) {
         }
       );
     };
-    
+
     const onUserStartedStudying = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      if (updatedUser.user.id !== currentUser.id) playUserStartedStudyingSound();
-    }
+      console.log("sending");
+      sendLocalSystemMessage(
+        `${updatedUser.user.displayName} has started studying ${updatedUser.topic?.title}`
+      );
+      console.log("sent");
+      if (updatedUser.user.id !== currentUser.id)
+        playUserStartedStudyingSound();
+    };
 
     const onUserStoppedStudying = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      if (updatedUser.user.id !== currentUser.id) playUserStoppedStudyingSound()
-    }
+      sendLocalSystemMessage(
+        `${updatedUser.user.displayName} has stopped studying`
+      );
+      if (updatedUser.user.id !== currentUser.id)
+        playUserStoppedStudyingSound();
+    };
 
     // --- Subscriptions ---
     client.on(HubEvents.RecievePressenceList, onReceivePresenceList);
@@ -79,12 +124,21 @@ export function usePresence(client: ChatHubClient | null) {
       client.off(HubEvents.UserStoppedStudying, onUserStoppedStudying);
       client.off(HubEvents.UserLeftChannel, onUserPresenceUpdate);
     };
-  }, [client, guildId, queryClient, playUserStartedStudyingSound, playUserStoppedStudyingSound]);
+  }, [
+    client,
+    guildId,
+    queryClient,
+    playUserStartedStudyingSound,
+    playUserStoppedStudyingSound,
+    currentUser,
+    sendLocalSystemMessage
+  ]);
 
   return {
     presenceList: presenceList || [],
     isLoadingPresence,
-    startStudying: (topicId: string) => client?.invoke("StartStudying", topicId),
+    startStudying: (topicId: string) =>
+      client?.invoke("StartStudying", topicId),
     stopStudying: () => client?.invoke("StopStudying"),
   };
 }

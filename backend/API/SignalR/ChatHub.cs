@@ -2,11 +2,13 @@ using System.Security.Claims;
 using API.Services.ChatPressence;
 using Application.ChatMessages.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace API.SignalR;
 
 
+[Authorize]
 public class ChatHub(IMediator mediator, PressenceService pressenceService) : Hub, IChatHub
 {
 

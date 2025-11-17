@@ -2,4 +2,4 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type ChatMessageType = number;
+export type ChatMessageType = 'USER' | 'SYSTEM';

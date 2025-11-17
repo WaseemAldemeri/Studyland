@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Domain;
 
 public class ChatMessage : IDomainEntity
@@ -13,9 +15,10 @@ public class ChatMessage : IDomainEntity
     public User? User { get; set; }
 }
 
-// system is for server messages and announcments
+// this line makes the generated client generate strings instead of numbers enums
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ChatMessageType
 {
     USER,
-    SYSTEM
+    SYSTEM // system is for server messages and announcments
 }

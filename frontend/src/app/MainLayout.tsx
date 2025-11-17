@@ -15,7 +15,7 @@ export default function MainLayout() {
         theme="light"
       />
       <NavBar />
-      <main className="container mx-auto p-4">
+      <main className="lg:container lg:mx-auto lg:p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname} // This is CRITICAL

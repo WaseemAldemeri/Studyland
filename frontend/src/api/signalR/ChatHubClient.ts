@@ -1,7 +1,8 @@
 import { HubConnection } from "@microsoft/signalr";
 import type { HubEventCallbacks, HubMethodParams } from "./ChatHubTypes";
+import { OpenAPI } from "../generated";
 
-export const HUB_URL = "http://localhost:5000/api/hubs/chat"
+export const HUB_URL = OpenAPI.BASE + "/api/hubs/chat"
 
 /**
  * A wrapper that makes the hub connection calls strogly-typed

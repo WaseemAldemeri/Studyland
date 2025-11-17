@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,10 +12,12 @@ import { Clock, Play, StopCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { TickingTimer } from "./TickingTimer";
+import { Progress } from "@/components/ui/progress"; // Import Progress
+import { useSounds } from "@/lib/hooks/useSounds";
 
 // Import the DTOs
 import type { UserPressenceDto, TopicDto, PressenceStatus } from "@/api/generated";
-import { useSounds } from "@/lib/hooks/useSounds";
+import { Separator } from "@/components/ui/separator";
 
 // --- 1. Define Props ---
 interface LiveStudyPanelProps {
@@ -26,14 +28,16 @@ interface LiveStudyPanelProps {
   onStopStudying: () => void;
 }
 
-// --- 2. Create a Status Sorter ---
-// This map assigns a "sort priority" to each status.
+// --- Status Sorter ---
 const statusSortPriority: Record<PressenceStatus, number> = {
   STUDYING: 1,
   ONLINE: 2,
   OFFLINE: 3,
-  ON_BREAK: 4, // You can adjust this order
+  ON_BREAK: 4,
 };
+
+// --- MOCK DATA FOR GOAL (you'll replace this) ---
+const mockGoal = { goalHours: 8, completedHours: 2.5 };
 
 export function LiveStudyPanel({
   presenceList,
@@ -43,33 +47,25 @@ export function LiveStudyPanel({
   onStopStudying,
 }: LiveStudyPanelProps) {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  
-  const {playStartStudyingClickSound, playStopStudyingClickSound} = useSounds();
+  const { playStartStudyingClickSound, playStopStudyingClickSound } = useSounds();
 
-  // --- 3. Derive State from Props ---
   const isStudying = currentUserPresence?.status === "STUDYING";
   
-  // --- 4. Create the Sorted Presence List ---
   const sortedPresenceList = useMemo(() => {
-    // Make a copy to sort
+    // ... (sorting logic is unchanged)
     return [...presenceList].sort((a, b) => {
-      // Rule 1: Current user always comes first
       if (a.user.id === currentUserPresence?.user.id) return -1;
       if (b.user.id === currentUserPresence?.user.id) return 1;
-
-      // Rule 2: Sort by status priority
       const statusA = statusSortPriority[a.status];
       const statusB = statusSortPriority[b.status];
       if (statusA !== statusB) {
         return statusA - statusB;
       }
-
-      // Rule 3: Tie-breaker (sort alphabetically)
       return a.user.displayName.localeCompare(b.user.displayName);
     });
   }, [presenceList, currentUserPresence]);
 
-  // --- 5. Handlers ---
+  // --- Handlers ---
   const handleStartStudying = () => {
     if (!selectedTopicId) {
       toast.error("Please select a topic first!");
@@ -87,14 +83,19 @@ export function LiveStudyPanel({
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          Live Study Room
-        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 gap-6">
         {/* --- Current User's Controls --- */}
-        <div className="space-y-4 py-2 bg-secondary/50 rounded-lg">
+        <div className="space-y-4 py-4 px-4 bg-secondary/50 rounded-lg">
+          
+          {/* --- NEW COMPACT GOAL BAR --- */}
+          <DailyGoalBar 
+            goalHours={mockGoal.goalHours} 
+            completedHours={mockGoal.completedHours} 
+          />
+          
+          <Separator />
+          
           <Select
             onValueChange={(value) => setSelectedTopicId(value)}
             disabled={isStudying}
@@ -128,13 +129,12 @@ export function LiveStudyPanel({
           )}
         </div>
 
-        {/* --- 6. List of All Users (Sorted) --- */}
+        {/* --- List of All Users (Sorted) --- */}
         <div className="flex-1 space-y-4 overflow-y-auto">
-          {/* We now render the new sorted list */}
           {sortedPresenceList.map((p) => (
-            <LiveUserListItem 
-              key={p.user.id} 
-              presence={p} 
+            <LiveUserListItem
+              key={p.user.id}
+              presence={p}
               isCurrentUser={p.user.id === currentUserPresence?.user.id}
             />
           ))}
@@ -144,21 +144,44 @@ export function LiveStudyPanel({
   );
 }
 
-// --- 7. Helper Component ---
-// I've created a sub-component to keep the list rendering clean
-function LiveUserListItem({ 
-  presence, 
-  isCurrentUser 
-}: { 
-  presence: UserPressenceDto, 
-  isCurrentUser: boolean 
+// --- Helper: Goal Bar Sub-Component ---
+function DailyGoalBar({
+  goalHours,
+  completedHours,
+}: {
+  goalHours: number;
+  completedHours: number;
+}) {
+  const progressPercentage = (completedHours / goalHours) * 100;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center text-xs font-medium">
+        <span className="text-foreground/70">Today's Goal</span>
+        <span className="text-primary font-bold">
+          {completedHours.toFixed(1)}h / {goalHours.toFixed(1)}h
+        </span>
+      </div>
+      <Progress value={progressPercentage} className="h-2" />
+    </div>
+  );
+}
+
+
+// --- Helper: List Item Sub-Component (Unchanged) ---
+function LiveUserListItem({
+  presence,
+  isCurrentUser,
+}: {
+  presence: UserPressenceDto;
+  isCurrentUser: boolean;
 }) {
   return (
     <div className={`flex items-center gap-4 p-2 rounded-lg ${
       isCurrentUser ? 'bg-primary/10' : ''
     }`}>
       <Avatar className="border-primary border">
-        <AvatarImage src={presence.user.displayName}  />
+        <AvatarImage src={presence.user.displayName} />
         <AvatarFallback>
           {presence.user.displayName.substring(0, 1)}
         </AvatarFallback>
