@@ -27,9 +27,14 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
     {
         if (_users.TryGetValue(userId, out var userPressense))
         {
+            if (userPressense.Status == PressenceStatus.OFFLINE)
+            {
+                userPressense.Status = PressenceStatus.ONLINE;
+            }
             return userPressense;
         }
 
+        // first time user joining we hit database
         using var scope = scopeFactory.CreateScope();
         var context = GetContext(scope);
         var mapper = GetMapper(scope);
@@ -50,16 +55,22 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
 
     public async Task<UserPressenceDto> RemoveUser(Guid userId)
     {
+        var userPresence = await GetUserPressense(userId);
 
-        if ((await GetUserPressense(userId)).Status == PressenceStatus.STUDYING)
+        if (userPresence.Status == PressenceStatus.STUDYING)
         {
-            await StopUserStudying(userId);
+            // we do not remove the user from the channel, we will keep them as studying
+            return userPresence;
         }
-        _users.Remove(userId, out var userPressence);
 
-        userPressence!.Status = PressenceStatus.OFFLINE;
+        // _users.Remove(userId, out userPresence);
+        // we are not removing them entirley instead keep them as offline
+        // acting as a cache, but we need to make endpoints that mutate the user
+        // to invalidate this cache or just a time to live which will be simpler
 
-        return userPressence;
+        userPresence.Status = PressenceStatus.OFFLINE;
+
+        return userPresence;
     }
 
 
@@ -103,5 +114,34 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
         userPressense.Topic = null;
 
         return userPressense;
+    }
+    
+    public async Task<bool> KillZombieSessionsFor(HashSet<Guid> zombieUsers, TimeSpan timeLimit)
+    {
+        bool killedSessions = false;
+
+        var studyingUsersInChannel = _users
+            .Where(kvp => kvp.Value.Status == PressenceStatus.STUDYING)
+            .Select(kvp => kvp.Key);
+
+        foreach (var userId in studyingUsersInChannel)
+        {
+            if (!zombieUsers.Contains(userId)) continue;
+
+            var userPresence = await GetUserPressense(userId);
+            
+            var duration = DateTimeOffset.Now - userPresence.StartedAt;
+
+            if (duration > timeLimit)
+            {
+                userPresence.Status = PressenceStatus.OFFLINE;
+                userPresence.Topic = null;
+                userPresence.StartedAt = DateTimeOffset.Now;
+                
+                killedSessions = true;
+            }
+        }
+        
+        return killedSessions;
     }
 }

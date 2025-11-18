@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using API.Services.ChatPressence;
 using API.SignalR;
+using API.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +105,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddSingleton<PressenceService>();
+builder.Services.AddHostedService<ZombieSessionsKiller>();
 
 
 var app = builder.Build();
@@ -123,7 +125,7 @@ app.UseCors(opts => opts
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
-    .WithOrigins("https://hq0fch8z-3000.euw.devtunnels.ms"));
+    .WithOrigins("http://localhost:3000"));
 
 app.UseAuthentication();
 app.UseAuthorization();
