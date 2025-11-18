@@ -1,0 +1,55 @@
+services:
+  # --- SQL Server ---
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      # Reference the variable from .env
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD} 
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  # --- .NET Backend ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=StudyLandDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;
+      
+      # Inject JWT settings
+      - Jwt__SecretKey=${JWT_SECRET}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpirationInMinutes=1440
+    depends_on:
+      - db
+
+  # --- Frontend Builder (Unchanged) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: "no"
+    volumes:
+      - static_assets:/shared
+
+  # --- Caddy (Unchanged) ---
+  caddy:
+    image: caddy:alpine
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - static_assets:/srv
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  sql_data:
+  static_assets:

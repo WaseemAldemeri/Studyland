@@ -1,0 +1,20 @@
+:80 {
+    # 1. Handle API requests (Highest Priority)
+    # Because this is in a 'handle' block, Caddy checks this first.
+    # If it matches, it stops here and proxies the request.
+    handle /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # 2. Handle everything else (Static Files + SPA Fallback)
+    # This block has no matcher, so it acts as the "else" statement.
+    # It ONLY runs if the request didn't match the API or Hubs blocks above.
+    handle {
+        root * /srv
+        # Now try_files only affects non-API requests!
+        try_files {path} /index.html
+        file_server
+    }
+    
+    encode gzip
+}

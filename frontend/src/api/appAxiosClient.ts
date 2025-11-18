@@ -2,9 +2,9 @@ import { router } from "@/app/router";
 import axios, { type AxiosError } from "axios";
 import { toast } from "sonner";
 
-const sleep = (ms: number) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// const sleep = (ms: number) => {
+//   return new Promise(resolve => setTimeout(resolve, ms));
+// }
 
 const appAxiosClient = axios.create();
 

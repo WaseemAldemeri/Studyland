@@ -21,8 +21,8 @@ public class Migrator
             {"705060284875669626", "Naseem"},
         };
 
-        // const string oldConnectionString = "Data Source=./nerds.db";
-        const string oldConnectionString = "Data Source=/home/waseem/Work/Studyland/backend/SeedDb/nerds.db";
+        const string oldConnectionString = "Data Source=nerds.db";
+        // const string oldConnectionString = "Data Source=/home/waseem/Work/Studyland/backend/SeedDb/nerds.db";
 
 
         Console.WriteLine("Step 1: Preparing destination database (studyland.db)...");
