@@ -8,7 +8,7 @@ export default function Home() {
       
       {/* 1. Background Image */}
       <img
-        src="/home-bg.jpg"
+        src="/home-bg.webp"
         alt="Library background"
         className="absolute inset-0 h-full w-full object-cover"
       />

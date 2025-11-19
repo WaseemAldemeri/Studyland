@@ -7,7 +7,7 @@ public class User : IdentityUser<Guid>, IDomainEntity
     // a temp discord id just for migration purposes from discord
     public string? DiscordId { get; set; }
     public string DisplayName { get; set; } = "";
-    public DateTimeOffset DateJoined { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset DateJoined { get; set; } = DateTimeOffset.UtcNow;
 
     public Guid? GuildId { get; set; }
     public Guild? Guild { get; set; }

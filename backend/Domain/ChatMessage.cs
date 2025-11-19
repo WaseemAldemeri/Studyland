@@ -5,7 +5,7 @@ namespace Domain;
 public class ChatMessage : IDomainEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
     public required string Content { get; set; }
     public ChatMessageType MessageType { get; set; } = ChatMessageType.USER;
 

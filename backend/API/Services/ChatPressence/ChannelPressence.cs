@@ -84,7 +84,7 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
         var mapper = GetMapper(scope);
 
         userPressense.Status = PressenceStatus.STUDYING;
-        userPressense.StartedAt = DateTimeOffset.Now;
+        userPressense.StartedAt = DateTimeOffset.UtcNow;
         userPressense.Topic = await context.Topics.ProjectTo<TopicDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(t => t.Id == topicId)
                 ?? throw new HubException("Can't Find Topic");
@@ -101,7 +101,7 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
             UserId = userId,
             StartedAt = userPressense.StartedAt,
             TopicId = userPressense.Topic!.Id,
-            Duration = TimeSpan.FromTicks(DateTimeOffset.Now.Ticks - userPressense.StartedAt.Ticks)
+            Duration = TimeSpan.FromTicks(DateTimeOffset.UtcNow.Ticks - userPressense.StartedAt.Ticks)
         };
 
         using var scope = scopeFactory.CreateScope();
@@ -110,7 +110,7 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
         await mediator.Send(command);
 
         userPressense.Status = PressenceStatus.ONLINE;
-        userPressense.StartedAt = DateTimeOffset.Now;
+        userPressense.StartedAt = DateTimeOffset.UtcNow;
         userPressense.Topic = null;
 
         return userPressense;
@@ -130,13 +130,13 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
 
             var userPresence = await GetUserPressense(userId);
             
-            var duration = DateTimeOffset.Now - userPresence.StartedAt;
+            var duration = DateTimeOffset.UtcNow - userPresence.StartedAt;
 
             if (duration > timeLimit)
             {
                 userPresence.Status = PressenceStatus.OFFLINE;
                 userPresence.Topic = null;
-                userPresence.StartedAt = DateTimeOffset.Now;
+                userPresence.StartedAt = DateTimeOffset.UtcNow;
                 
                 killedSessions = true;
             }

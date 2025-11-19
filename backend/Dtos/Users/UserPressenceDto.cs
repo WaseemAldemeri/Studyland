@@ -12,7 +12,7 @@ public class UserPressenceDto
     public PressenceStatus Status { get; set; } = PressenceStatus.OFFLINE;
     public TopicDto? Topic { get; set; } = null;
     [Required]
-    public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
 // this line makes the generated client generate strings instead of numbers enums

@@ -21,6 +21,16 @@ public class AppDbContext(DbContextOptions options)
     {
         base.OnModelCreating(builder);
 
+        // This creates ONE composite index that covers both columns in the correct order
+        builder.Entity<Session>()
+            .HasIndex(s => new { s.UserId, s.StartedAt });
+
+        builder.Entity<ChatMessage>()
+            .HasIndex(cm => new { cm.ChannelId, cm.Timestamp });
+
+        builder.Entity<User>()
+            .HasIndex(u => new { u.GuildId });
+
         // This rule tells EF Core how to handle the 'Duration' property for the 'Session' entity.
         builder.Entity<Session>()
             .Property(s => s.Duration)
