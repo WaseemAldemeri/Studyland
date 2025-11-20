@@ -10,7 +10,7 @@ const appAxiosClient = axios.create();
 
 appAxiosClient.interceptors.request.use(
   async (config) => {
-    // await sleep(300); // just to test loading indicators
+    // await sleep(500); // just to test loading indicators
     const token = localStorage.getItem("access-token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

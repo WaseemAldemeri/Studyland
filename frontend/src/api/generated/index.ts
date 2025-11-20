@@ -16,6 +16,7 @@ export type { DailyActivity } from './models/DailyActivity';
 export type { GuildDto } from './models/GuildDto';
 export type { LoginRequestDto } from './models/LoginRequestDto';
 export type { LoginResponseDto } from './models/LoginResponseDto';
+export type { PagedListOfChatMessageDtoAndNullableOfDateTimeOffset } from './models/PagedListOfChatMessageDtoAndNullableOfDateTimeOffset';
 export type { PressenceStatus } from './models/PressenceStatus';
 export type { RegisterRequestDto } from './models/RegisterRequestDto';
 export type { SessionDto } from './models/SessionDto';

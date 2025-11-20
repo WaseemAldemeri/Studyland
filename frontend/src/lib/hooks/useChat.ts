@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { ChatMessagesService, type ChatMessageDto } from "@/api/generated";
 import { useSounds } from "./useSounds";
 import { useSignalR } from "@/lib/context/SignalRContext"; // <-- 1. Get global client
@@ -10,28 +10,42 @@ export function useChat(channelId?: string) {
   const client = useSignalR(); // 2. Get the global, persistent client
   const { playMessageSound } = useSounds();
 
-  const { data: messages, isLoading: isLoadingMessages } = useQuery({
+  const {
+    data: serverMessages,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["chatMessages", channelId],
-    queryFn: () => ChatMessagesService.getMessages(channelId!),
+    queryFn: ({ pageParam }) =>
+      ChatMessagesService.getMessages(channelId!, pageParam ?? undefined, 5),
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    select: (data) => data.pages.flatMap((page) => page.items).reverse(),
     enabled: !!channelId,
     staleTime: 5 * 60 * 1000,
   });
 
+  const [liveMessages, setLiveMessages] = useState<ChatMessageDto[]>([]);
+
+  const messages = useMemo(
+    () => [...serverMessages ?? [], ...liveMessages],
+    [serverMessages, liveMessages]
+  );
+
   // --- 3. This effect now only manages LISTENERS ---
   useEffect(() => {
     // Wait for both the client (global) and channelId (local)
-    if (!client || !channelId) return;
+    if (!client || !channelId) {
+      setLiveMessages([]);
+      return;
+    }
 
     // --- Setup Listeners ---
     const onReceiveMessage = (newMessage: ChatMessageDto) => {
       playMessageSound();
-      queryClient.setQueryData(
-        ["chatMessages", channelId],
-        (oldData: ChatMessageDto[] | undefined) => {
-          return [...(oldData || []), newMessage];
-        }
-      );
-      console.log("recieving message ", newMessage.content)
+      setLiveMessages((prev) => [...prev, newMessage]);
     };
 
     client.on(HubEvents.ReceiveMessage, onReceiveMessage);
@@ -52,10 +66,12 @@ export function useChat(channelId?: string) {
     client.invoke("SendMessage", messageContent);
   };
 
-
   return {
     messages: messages || [],
     sendMessage,
-    isLoadingMessages,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   };
 }

@@ -1,5 +1,6 @@
 using Application.Accounts.Commands;
 using Application.ChatMessages.Commands;
+using Application.ChatMessages.Queries;
 using Application.Sessions.Commands;
 using Application.Stats.Queries;
 using AutoMapper;
@@ -53,6 +54,7 @@ public class MappingProfiles : Profile
         CreateMap<LoginRequestDto, Login.Command>();
         
         CreateMap<CreateChatMessage.Query, ChatMessage>();
+        CreateMap<GetChatMessagesDto, GetChatMessages.Query>();
         CreateMap<ChatMessage, ChatMessageDto>();
 
         CreateMap<ChatChannel, ChatChannelDto>();

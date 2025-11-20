@@ -2,24 +2,30 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ChatMessageDto } from '../models/ChatMessageDto';
+import type { PagedListOfChatMessageDtoAndNullableOfDateTimeOffset } from '../models/PagedListOfChatMessageDtoAndNullableOfDateTimeOffset';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ChatMessagesService {
     /**
      * @param channelId
-     * @returns ChatMessageDto OK
+     * @param cursor
+     * @param pageSize
+     * @returns PagedListOfChatMessageDtoAndNullableOfDateTimeOffset OK
      * @throws ApiError
      */
     public static getMessages(
         channelId?: string,
-    ): CancelablePromise<Array<ChatMessageDto>> {
+        cursor?: string,
+        pageSize?: number,
+    ): CancelablePromise<PagedListOfChatMessageDtoAndNullableOfDateTimeOffset> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/ChatMessages',
             query: {
-                'channelId': channelId,
+                'ChannelId': channelId,
+                'Cursor': cursor,
+                'PageSize': pageSize,
             },
         });
     }

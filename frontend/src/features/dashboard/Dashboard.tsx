@@ -14,7 +14,6 @@ import { LiveStudyPanel } from "./LiveStudyPanel";
 import { PersonalDeskPanel } from "./PersonalDeskPanel";
 import { Spinner } from "@/components/shared/Spinner";
 
-import { useChat } from "@/lib/hooks/useChat";
 import { usePresence } from "@/lib/hooks/usePressence";
 import { cn } from "@/lib/utils/utils"; // Import cn utility
 
@@ -43,16 +42,9 @@ export default function Dashboard() {
     queryFn: () => TopicsService.getTopics(),
   });
 
-  // --- 3. CUSTOM HOOKS ---
-  const { messages, sendMessage, isLoadingMessages } = useChat(
-    selectedChannel?.id
-  );
-  const {
-    presenceList,
-    isLoadingPresence,
-    startStudying,
-    stopStudying,
-  } = usePresence(selectedChannel?.id);
+
+  const { presenceList, isLoadingPresence, startStudying, stopStudying } =
+    usePresence(selectedChannel?.id);
 
   // --- 4. EFFECTS ---
   useEffect(() => {
@@ -110,9 +102,7 @@ export default function Dashboard() {
           <div className="w-1/3 lg:flex-1 h-full">
             <div className="bg-secondary/50 rounded-lg p-4 h-full">
               <ChatPanel
-                messages={messages}
-                sendMessage={sendMessage}
-                isLoading={isLoadingMessages}
+                channelId={selectedChannel?.id}
                 setActiveView={setActiveView}
               />
             </div>
