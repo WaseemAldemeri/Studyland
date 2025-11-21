@@ -66,4 +66,9 @@ public class ChatHub(IMediator mediator, PressenceService pressenceService) : Hu
         var userPressense = await CurrentChannel.StopUserStudying(CurrentUserId);
         await CurrentGroup.SendAsync(ChatHubEvents.UserStoppedStudying, userPressense);
     }
+    
+    public async Task GetPressenceList()
+    {
+        await Clients.Caller.SendAsync(ChatHubEvents.RecievePressenceList, CurrentChannel.Users);
+    }
 }

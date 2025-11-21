@@ -26,6 +26,13 @@ public class MappingProfiles : Profile
         CreateMap<User, UserDto>();
         CreateMap<User, UserPressenceDto>()
             .ForMember(d => d.User, opt => opt.MapFrom(s => s));
+        CreateMap<User, UserDailyGoalDto>()
+            .ForMember(d => d.DailyGoalMs, opt => opt.MapFrom(s => (long)s.DailyGoal.TotalMilliseconds))
+            .ForMember(d => d.TotalStudiedMs, opt => opt.MapFrom(s => s.Sessions
+                .Where(session => session.StartedAt >= DateTime.UtcNow.Date)
+                .Sum(session => session.Duration.TotalMilliseconds
+            )));
+        // .ForMember(d => d.User, opt => opt.MapFrom(s => s));
 
         // Sessions Mappings
         CreateMap<Session, SessionDto>()
@@ -52,7 +59,7 @@ public class MappingProfiles : Profile
             );
 
         CreateMap<LoginRequestDto, Login.Command>();
-        
+
         CreateMap<CreateChatMessage.Query, ChatMessage>();
         CreateMap<GetChatMessagesDto, GetChatMessages.Query>();
         CreateMap<ChatMessage, ChatMessageDto>();

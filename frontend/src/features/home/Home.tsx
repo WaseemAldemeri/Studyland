@@ -20,7 +20,7 @@ export default function Home() {
       />
       
       {/* 3. Dark Overlay: Ensures text readability even if image fails */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/20" />
       
       {/* 4. Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">

@@ -42,9 +42,8 @@ export default function Dashboard() {
     queryFn: () => TopicsService.getTopics(),
   });
 
-
   const { presenceList, isLoadingPresence, startStudying, stopStudying } =
-    usePresence(selectedChannel?.id);
+    usePresence();
 
   // --- 4. EFFECTS ---
   useEffect(() => {

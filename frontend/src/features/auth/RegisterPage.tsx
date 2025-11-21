@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md p-4">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
             <BrainCircuit className="h-8 w-8 text-primary" />

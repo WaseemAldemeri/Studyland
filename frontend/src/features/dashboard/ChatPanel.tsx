@@ -11,6 +11,7 @@ import {
   type Dispatch,
   type SetStateAction,
   useLayoutEffect,
+  Fragment,
 } from "react";
 import { useAccount } from "@/lib/hooks/useAccount";
 
@@ -133,7 +134,8 @@ export function ChatPanel({ channelId, setActiveView }: ChatPanelProps) {
         {/* 7. Render messages using DTO properties */}
         {!isLoading &&
           messages.map((msg, i) => {
-            const prevMsgDate = i > 0 ? new Date(messages[i - 1].timestamp) : new Date();
+            const prevMsgDate =
+              i > 0 ? new Date(messages[i - 1].timestamp) : new Date();
             const thisMsgDate = new Date(msg.timestamp);
 
             const isSameDay =
@@ -147,13 +149,12 @@ export function ChatPanel({ channelId, setActiveView }: ChatPanelProps) {
               thisMsgDate.getTime() - prevMsgDate.getTime() < 1000 * 60 * 5;
 
             return (
-              <>
+              <Fragment key={msg.id}>
                 {!isSameDay && <DateDivider timestamp={msg.timestamp} />}
 
                 {!isSameUser && <div className="h-2" />}
 
                 <div
-                  key={msg.id}
                   className={cn(
                     `flex items-center gap-3 `,
                     msg.messageType === "SYSTEM" && "justify-center",
@@ -198,7 +199,7 @@ export function ChatPanel({ channelId, setActiveView }: ChatPanelProps) {
                     )}
                   </div>
                 </div>
-              </>
+              </Fragment>
             );
           })}
       </CardContent>

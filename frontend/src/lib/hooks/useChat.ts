@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { ChatMessagesService, type ChatMessageDto } from "@/api/generated";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChatMessagesService, type ChatMessageDto, type UserDto } from "@/api/generated";
 import { useSounds } from "./useSounds";
 import { useSignalR } from "@/lib/context/SignalRContext"; // <-- 1. Get global client
 import { HubEvents } from "@/api/signalR/ChatHubTypes";
@@ -42,7 +42,6 @@ export function useChat(channelId?: string) {
       return;
     }
 
-    // --- Setup Listeners ---
     const onReceiveMessage = (newMessage: ChatMessageDto) => {
       playMessageSound();
       setLiveMessages((prev) => [...prev, newMessage]);
@@ -50,14 +49,10 @@ export function useChat(channelId?: string) {
 
     client.on(HubEvents.ReceiveMessage, onReceiveMessage);
 
-    // Tell the server we are now in this channel
     client.invoke("JoinChannel", channelId);
 
-    // --- Cleanup ---
-    // This runs when the component unmounts OR channelId changes
     return () => {
       client.off(HubEvents.ReceiveMessage, onReceiveMessage);
-      // We could invoke "LeaveChannel" here if we wanted
     };
   }, [channelId, client, queryClient, playMessageSound]);
 
@@ -65,10 +60,33 @@ export function useChat(channelId?: string) {
   const sendMessage = (messageContent: string) => {
     client.invoke("SendMessage", messageContent);
   };
+  
+  
+  const sendLocalSystemMessage = useCallback((content: string) => {
+    const systemAuthor: UserDto = {
+      id: "system",
+      displayName: "System",
+      email: "",
+      dateJoined: new Date().toISOString(),
+      guildId: "",
+    };
+
+    const systemMessage: ChatMessageDto & { messageType?: "SYSTEM" } = {
+      id: crypto.randomUUID(),
+      content: "-- " + content + " --",
+      timestamp: new Date().toISOString(),
+      user: systemAuthor,
+      messageType: "SYSTEM",
+    };
+
+    setLiveMessages((prev) => [...prev, systemMessage]);
+
+  }, [setLiveMessages]);
 
   return {
     messages: messages || [],
     sendMessage,
+    sendLocalSystemMessage,
     isLoading,
     hasNextPage,
     isFetchingNextPage,

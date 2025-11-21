@@ -1,7 +1,4 @@
-import type {
-  ChatMessageDto,
-  UserPressenceDto,
-} from "@/api/generated";
+import type { ChatMessageDto, UserPressenceDto } from "@/api/generated";
 
 // --- HUB METHODS (Client-to-Server) ---
 // This maps to C# IChatHub interface
@@ -10,6 +7,7 @@ export const HubMethods = {
   SendMessage: "SendMessage",
   StartStudying: "StartStudying",
   StopStudying: "StopStudying",
+  GetPressenceList: "GetPressenceList",
 } as const;
 
 // This maps the method names to their function arguments
@@ -18,8 +16,8 @@ export type HubMethodParams = {
   [HubMethods.SendMessage]: [messageContent: string];
   [HubMethods.StartStudying]: [topicId: string];
   [HubMethods.StopStudying]: [];
+  [HubMethods.GetPressenceList]: [];
 };
-
 
 // --- HUB EVENTS (Server-to-Client) ---
 // This maps to C# ChatHubEvents static class

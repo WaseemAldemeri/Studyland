@@ -3,10 +3,9 @@ import {
   type ReactNode,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
-import { HubConnectionBuilder } from "@microsoft/signalr";
+import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 import { ChatHubClient, HUB_URL } from "@/api/signalR/ChatHubClient";
 import { FullPageLoader } from "@/components/shared/FullPageLoader"; // <-- Import your loader
 import { useAccount } from "../hooks/useAccount";
@@ -16,22 +15,13 @@ const SignalRContext = createContext<ChatHubClient | null>(null);
 
 // 2. Create the Provider component
 export function SignalRProvider({ children }: { children: ReactNode }) {
-  // make sure user is authenticated
   const { currentUser } = useAccount();
 
   const [client, setClient] = useState<ChatHubClient | null>(null);
-  const connectedRef = useRef(false);
 
   useEffect(() => {
     if (!currentUser) {
       return;
-    }
-
-    if (connectedRef.current) {
-      return () => {
-        console.log("Stopping SignalR connection.");
-        connection.stop();
-      };
     }
 
     const connection = new HubConnectionBuilder()
@@ -43,26 +33,43 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
 
     const chatClient = new ChatHubClient(connection);
 
-    connection
-      .start()
-      .then(() => {
-        console.log("SignalR Connected Globally.");
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        console.log("✅ SignalR Connected Globally.");
         setClient(chatClient);
-        connectedRef.current = true;
-      })
-      .catch((e) => console.error("SignalR Global Connection failed: ", e));
+      } catch (e) {
+        console.error("❌ SignalR Connection failed: ", e);
+      }
+    };
 
-    return;
-  }, [currentUser, client]);
+    startConnection();
 
-  // --- THIS IS THE FIX ---
+    const attemptReconnect = async () => {
+      console.log(`hub state is: ${connection.state}`)
+      if (connection.state === HubConnectionState.Disconnected) {
+        console.log("Attempting to reconnect to chat hub.");
+        await startConnection();
+      }
+    };
+
+    // window.addEventListener("pageshow", attemptReconnect);
+    document.addEventListener("visibilitychange", attemptReconnect);
+
+    return () => {
+      // window.removeEventListener("pageshow", attemptReconnect);
+      document.removeEventListener("visibilitychange", attemptReconnect);
+      connection.stop();
+      setClient(null);
+      console.log("SignalR Disconnected.");
+    };
+  }, [currentUser]);
+
   // If the client is not yet connected, show a loader
   // and do not render the rest of the app.
   if (!client && currentUser) {
     return <FullPageLoader />;
   }
-  // --- END OF FIX ---
-
   // Only render children *after* the client is ready and non-null
   return (
     <SignalRContext.Provider value={client}>{children}</SignalRContext.Provider>

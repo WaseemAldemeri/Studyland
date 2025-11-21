@@ -207,19 +207,19 @@ export function SessionsDataTable({
   // --- RENDER (no major changes, just uses the new table instance) ---
   return (
     <div className="min-h-[500px] bg-secondary/50 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col gap-2 lg:flex-row justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-primary">
           {selectedDay
             ? `Sessions for ${currentUser?.displayName ?? selectedDay}`
             : "Select a day to see details"}
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full justify-center items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-64 justify-start text-left font-normal",
                   !selectedDay && "text-muted-foreground"
                 )}
               >
@@ -245,7 +245,7 @@ export function SessionsDataTable({
           {selectedDay !== new Date().toLocaleDateString() && (
             <Button
               onClick={() => handleDaySelect(new Date().toLocaleDateString())}
-              className="text-xs"
+              className="hidden sm:block text-xs"
             >
               Today
             </Button>

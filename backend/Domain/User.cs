@@ -8,6 +8,7 @@ public class User : IdentityUser<Guid>, IDomainEntity
     public string? DiscordId { get; set; }
     public string DisplayName { get; set; } = "";
     public DateTimeOffset DateJoined { get; set; } = DateTimeOffset.UtcNow;
+    public TimeSpan DailyGoal { get; set; } = TimeSpan.FromHours(3);
 
     public Guid? GuildId { get; set; }
     public Guild? Guild { get; set; }

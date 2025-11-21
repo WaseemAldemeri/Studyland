@@ -22,4 +22,12 @@ public class GuildsController : BaseApiController
 
         return Ok(await Mediator.Send(query));
     }
+
+    [HttpGet("{id}/members/goals", Name = "GetGuildMembersGoals")]
+    public async Task<ActionResult<List<UserDailyGoalDto>>> GetGuildMemebersGoals(Guid id)
+    {
+        var query = new GetGuildMembersGoals.Query() {Id = id};
+
+        return Ok(await Mediator.Send(query));
+    }
 }

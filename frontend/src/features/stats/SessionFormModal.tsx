@@ -112,7 +112,7 @@ export function SessionFormModal({
           <DialogDescription>
             {sessionToEdit
               ? "Update the details for this study session."
-              : `Add a new session for ${selectedDay}.`}
+              : `Add a new session for ${new Date(selectedDay).toLocaleDateString()}.`}
           </DialogDescription>
         </DialogHeader>
         <SessionForm

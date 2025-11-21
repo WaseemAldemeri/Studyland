@@ -6,4 +6,5 @@ public interface IChatHub
     Task SendMessage(string messageContent);
     Task StartStudying(Guid topicId);
     Task StopStudying();
+    Task GetPressenceList();
 }

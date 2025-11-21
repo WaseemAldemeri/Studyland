@@ -21,7 +21,7 @@ const getDefaultDateRange = () => {
   startDate.setDate(endDate.getDate() - 7);
 
   startDate.setHours(0, 0, 0, 0);
-  endDate.setHours(23, 59, 59, 999)
+  endDate.setHours(23, 59, 59, 999);
 
   return { startDate, endDate };
 };
@@ -32,9 +32,11 @@ export default function StatsPage() {
   const [dateRange, setDateRange] = useState(getDefaultDateRange());
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [selectedDay, setSelectedDay] = useState<string>(new Date().toISOString());
-  
-  const {currentUser} = useAccount();
+  const [selectedDay, setSelectedDay] = useState<string>(
+    new Date().toLocaleDateString()
+  );
+
+  const { currentUser } = useAccount();
 
   const handleDaySelect = (date: string) => {
     setSelectedDay(date);
@@ -140,7 +142,7 @@ export default function StatsPage() {
           allTopics={allTopics ?? []}
           selectedTopicIds={selectedTopicIds}
           onTopicsChange={setSelectedTopicIds}
-          allUsers={allUsers?.filter(u => u.id != currentUser?.id) ?? []}
+          allUsers={allUsers?.filter((u) => u.id != currentUser?.id) ?? []}
           selectedUserIds={selectedUserIds}
           onUsersChange={setSelectedUserIds}
         />
@@ -164,20 +166,28 @@ export default function StatsPage() {
       {/* Other placeholder sections remain the same */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 2. Replace the placeholder div with the ActivityChart component */}
-        <ActivityChart
-          dailyActivities={stats?.dailyActivities ?? []}
-          isLoading={statsLoading}
-          onDayClick={handleDaySelect}
-          periodDays={stats?.totalDays}
-        />
 
-        <BreakdownChart
-          userTopicBreakdowns={stats?.usersTopicBreakDowns ?? []}
-          usersInQuery={usersInQuery}
-          isLoading={statsLoading}
-        />
+        <div className="lg:order-2">
+          <BreakdownChart
+            userTopicBreakdowns={stats?.usersTopicBreakDowns ?? []}
+            usersInQuery={usersInQuery}
+            isLoading={statsLoading}
+          />
+        </div>
+
+        <div className="lg:order-1 lg:col-span-2">
+          <ActivityChart
+            dailyActivities={stats?.dailyActivities ?? []}
+            isLoading={statsLoading}
+            onDayClick={handleDaySelect}
+            periodDays={stats?.totalDays}
+          />
+        </div>
       </div>
-      <SessionsDataTable selectedDay={selectedDay} handleDaySelect={handleDaySelect} />
+      <SessionsDataTable
+        selectedDay={selectedDay}
+        handleDaySelect={handleDaySelect}
+      />
     </div>
   );
 }

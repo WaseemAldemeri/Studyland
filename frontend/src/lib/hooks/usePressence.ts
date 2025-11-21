@@ -1,17 +1,14 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  type ChatMessageDto,
-  type UserDto,
-  type UserPressenceDto,
-  GuildsService,
-} from "@/api/generated";
+import { type UserPressenceDto, GuildsService } from "@/api/generated";
 import { HubEvents } from "@/api/signalR/ChatHubTypes";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { useSounds } from "./useSounds";
 import { useSignalR } from "../context/SignalRContext";
 
-export function usePresence(channelId?: string) {
+export function usePresence(
+  sendLocalSystemMessage?: (content: string) => void
+) {
   const client = useSignalR(); // 2. Get the global, persistent client
 
   const queryClient = useQueryClient();
@@ -20,37 +17,12 @@ export function usePresence(channelId?: string) {
   const { playUserStartedStudyingSound, playUserStoppedStudyingSound } =
     useSounds();
 
-  const sendLocalSystemMessage = useCallback((content: string) => {
-    const systemAuthor: UserDto = {
-      id: "system",
-      displayName: "System",
-      email: "",
-      dateJoined: new Date().toISOString(),
-      guildId: "",
-    };
-
-    const systemMessage: ChatMessageDto & { messageType?: "SYSTEM" } = {
-      id: crypto.randomUUID(),
-      content: "-- " + content + " --",
-      timestamp: new Date().toISOString(),
-      user: systemAuthor,
-      messageType: "SYSTEM",
-    };
-
-    queryClient.setQueryData(
-      ["chatMessages", channelId],
-      (oldData: ChatMessageDto[] | undefined) => {
-        return [...(oldData || []), systemMessage];
-      }
-    );
-  }, [queryClient, channelId]);
-
   // The 'master list' query
   const { data: presenceList, isLoading: isLoadingPresence } = useQuery({
     queryKey: ["guildMembers", guildId],
     queryFn: () => GuildsService.getGuildMembers(guildId!),
     enabled: !!guildId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity, // i think this must be infinity else we will show offline every 5 minutes
     refetchOnWindowFocus: false,
   });
 
@@ -90,20 +62,22 @@ export function usePresence(channelId?: string) {
 
     const onUserStartedStudying = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      console.log("sending");
-      sendLocalSystemMessage(
-        `${updatedUser.user.displayName} has started studying ${updatedUser.topic?.title}`
-      );
-      console.log("sent");
+      if (sendLocalSystemMessage) {
+        sendLocalSystemMessage(
+          `${updatedUser.user.displayName} has started studying ${updatedUser.topic?.title}`
+        );
+      }
       if (updatedUser.user.id !== currentUser.id)
         playUserStartedStudyingSound();
     };
 
     const onUserStoppedStudying = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      sendLocalSystemMessage(
-        `${updatedUser.user.displayName} has stopped studying`
-      );
+      if (sendLocalSystemMessage) {
+        sendLocalSystemMessage(
+          `${updatedUser.user.displayName} has stopped studying`
+        );
+      }
       if (updatedUser.user.id !== currentUser.id)
         playUserStoppedStudyingSound();
     };
@@ -131,7 +105,7 @@ export function usePresence(channelId?: string) {
     playUserStartedStudyingSound,
     playUserStoppedStudyingSound,
     currentUser,
-    sendLocalSystemMessage
+    sendLocalSystemMessage,
   ]);
 
   return {
