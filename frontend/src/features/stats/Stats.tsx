@@ -32,9 +32,7 @@ export default function StatsPage() {
   const [dateRange, setDateRange] = useState(getDefaultDateRange());
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [selectedDay, setSelectedDay] = useState<string>(
-    new Date().toLocaleDateString()
-  );
+  const [selectedDay, setSelectedDay] = useState<string>(new Date().toISOString());
 
   const { currentUser } = useAccount();
 

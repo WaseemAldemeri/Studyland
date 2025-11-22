@@ -19,7 +19,7 @@ export function useChat(channelId?: string) {
   } = useInfiniteQuery({
     queryKey: ["chatMessages", channelId],
     queryFn: ({ pageParam }) =>
-      ChatMessagesService.getMessages(channelId!, pageParam ?? undefined, 5),
+      ChatMessagesService.getMessages(channelId!, pageParam ?? undefined, 25),
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     select: (data) => data.pages.flatMap((page) => page.items).reverse(),
