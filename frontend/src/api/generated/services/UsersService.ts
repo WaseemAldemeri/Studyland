@@ -33,4 +33,19 @@ export class UsersService {
             },
         });
     }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static updateDailyGoal(
+        requestBody: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/DailyGoal',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
 }

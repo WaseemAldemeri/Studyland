@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { GuildDto } from '../models/GuildDto';
+import type { UserDailyGoalDto } from '../models/UserDailyGoalDto';
 import type { UserPressenceDto } from '../models/UserPressenceDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -35,6 +36,22 @@ export class GuildsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/Guilds/{id}/members',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @returns UserDailyGoalDto OK
+     * @throws ApiError
+     */
+    public static getGuildMembersGoals(
+        id: string,
+    ): CancelablePromise<Array<UserDailyGoalDto>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/Guilds/{id}/members/goals',
             path: {
                 'id': id,
             },

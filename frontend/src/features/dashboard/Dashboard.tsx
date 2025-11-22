@@ -37,6 +37,17 @@ export default function Dashboard() {
     enabled: !!guildId,
   });
 
+  // Fetch all users' goals for the leaderboard
+  const { data: guildGoals, isLoading: isLoadingGoals } = useQuery({
+    queryKey: ["guildGoals", guildId],
+    queryFn: () => GuildsService.getGuildMembersGoals(guildId!),
+    enabled: !!guildId,
+  });
+
+  const currentUserGoal = guildGoals?.find(
+    (u) => u.user.id === currentUser?.id
+  );
+
   const { data: allTopics } = useQuery({
     queryKey: ["allTopics"],
     queryFn: () => TopicsService.getTopics(),
@@ -93,6 +104,7 @@ export default function Dashboard() {
                 onStartStudying={startStudying}
                 onStopStudying={stopStudying}
                 currentUserPresence={currentUserPresence}
+                currentUserGoal={currentUserGoal}
               />
             </div>
           </div>
@@ -111,7 +123,10 @@ export default function Dashboard() {
           {/* 5. This slide is hidden on desktop */}
           <div className="w-1/3 lg:hidden h-full">
             <div className="bg-secondary/50 rounded-lg p-4 h-full">
-              <PersonalDeskPanel />
+              <PersonalDeskPanel
+                allUsersGoals={guildGoals ?? []}
+                isLoadingGoals={isLoadingGoals}
+              />
             </div>
           </div>
         </div>
@@ -149,7 +164,10 @@ export default function Dashboard() {
       {/* --- 2. Bottom Panel: Personal Desk (Desktop-Only) --- */}
       {/* 7. This is hidden on mobile and shows on desktop */}
       <div className="hidden lg:block w-full bg-secondary/50 rounded-lg p-4">
-        <PersonalDeskPanel />
+        <PersonalDeskPanel
+          allUsersGoals={guildGoals ?? []}
+          isLoadingGoals={isLoadingGoals}
+        />
       </div>
     </div>
   );

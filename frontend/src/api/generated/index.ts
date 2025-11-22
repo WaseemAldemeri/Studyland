@@ -24,6 +24,7 @@ export type { StatsDto } from './models/StatsDto';
 export type { TopicDto } from './models/TopicDto';
 export type { TopicDto2 } from './models/TopicDto2';
 export type { UpdateSessionDto } from './models/UpdateSessionDto';
+export type { UserDailyGoalDto } from './models/UserDailyGoalDto';
 export type { UserDto } from './models/UserDto';
 export type { UserKpiStats } from './models/UserKpiStats';
 export type { UserPressenceDto } from './models/UserPressenceDto';

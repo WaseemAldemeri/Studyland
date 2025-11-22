@@ -46,10 +46,16 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     startConnection();
 
     const attemptReconnect = async () => {
-      console.log(`hub state is: ${connection.state}`)
+      console.log(`hub state is: ${connection.state}`);
       if (connection.state === HubConnectionState.Disconnected) {
         console.log("Attempting to reconnect to chat hub.");
         await startConnection();
+      }
+      console.log(`refreshing users pressences`);
+      try {
+        await connection.invoke("GetPressenceList");
+      } catch (ex) {
+        console.error("failed to invoke GetPressenseList", ex);
       }
     };
 

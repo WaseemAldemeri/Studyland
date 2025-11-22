@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Play, StopCircle } from "lucide-react";
+import { CheckCircle, Clock, Play, StopCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { TickingTimer } from "./TickingTimer";
@@ -16,14 +16,22 @@ import { Progress } from "@/components/ui/progress"; // Import Progress
 import { useSounds } from "@/lib/hooks/useSounds";
 
 // Import the DTOs
-import type { UserPressenceDto, TopicDto, PressenceStatus } from "@/api/generated";
+import {
+  type UserPressenceDto,
+  type TopicDto,
+  type PressenceStatus,
+  type UserDailyGoalDto,
+} from "@/api/generated";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils/utils";
+import { DailyGoalModal } from "./DailyGoalFormModal";
 
 // --- 1. Define Props ---
 interface LiveStudyPanelProps {
   presenceList: UserPressenceDto[];
   topics: TopicDto[];
   currentUserPresence?: UserPressenceDto;
+  currentUserGoal?: UserDailyGoalDto;
   onStartStudying: (topicId: string) => void;
   onStopStudying: () => void;
 }
@@ -36,21 +44,20 @@ const statusSortPriority: Record<PressenceStatus, number> = {
   ON_BREAK: 4,
 };
 
-// --- MOCK DATA FOR GOAL (you'll replace this) ---
-const mockGoal = { goalHours: 8, completedHours: 2.5 };
-
 export function LiveStudyPanel({
   presenceList,
   topics,
   currentUserPresence,
+  currentUserGoal,
   onStartStudying,
   onStopStudying,
 }: LiveStudyPanelProps) {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  const { playStartStudyingClickSound, playStopStudyingClickSound } = useSounds();
+  const { playStartStudyingClickSound, playStopStudyingClickSound } =
+    useSounds();
 
   const isStudying = currentUserPresence?.status === "STUDYING";
-  
+
   const sortedPresenceList = useMemo(() => {
     // ... (sorting logic is unchanged)
     return [...presenceList].sort((a, b) => {
@@ -64,6 +71,8 @@ export function LiveStudyPanel({
       return a.user.displayName.localeCompare(b.user.displayName);
     });
   }, [presenceList, currentUserPresence]);
+
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
 
   // --- Handlers ---
   const handleStartStudying = () => {
@@ -82,20 +91,18 @@ export function LiveStudyPanel({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-      </CardHeader>
+      <CardHeader></CardHeader>
       <CardContent className="flex flex-col flex-1 gap-6">
         {/* --- Current User's Controls --- */}
         <div className="space-y-4 py-4 px-4 bg-secondary/50 rounded-lg">
-          
           {/* --- NEW COMPACT GOAL BAR --- */}
-          <DailyGoalBar 
-            goalHours={mockGoal.goalHours} 
-            completedHours={mockGoal.completedHours} 
+          <DailyGoalBar
+            userGoal={currentUserGoal}
+            onOpenGoalModal={() => setIsGoalModalOpen(true)}
           />
-          
+
           <Separator />
-          
+
           <Select
             onValueChange={(value) => setSelectedTopicId(value)}
             disabled={isStudying}
@@ -139,27 +146,40 @@ export function LiveStudyPanel({
             />
           ))}
         </div>
+        <DailyGoalModal
+          isOpen={isGoalModalOpen}
+          onClose={() => setIsGoalModalOpen(false)}
+          currentGoalMs={currentUserGoal?.dailyGoalMs}
+        />
       </CardContent>
     </Card>
   );
 }
 
 // --- Helper: Goal Bar Sub-Component ---
-function DailyGoalBar({
-  goalHours,
-  completedHours,
-}: {
-  goalHours: number;
-  completedHours: number;
-}) {
-  const progressPercentage = (completedHours / goalHours) * 100;
+function DailyGoalBar({ userGoal, onOpenGoalModal }: { userGoal?: UserDailyGoalDto, onOpenGoalModal: () => void; }) {
+  const progressPercentage = Math.min(userGoal?.percentageCompleted ?? 0, 100);
 
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center text-xs font-medium">
-        <span className="text-foreground/70">Today's Goal</span>
+        <p
+          onClick={onOpenGoalModal}
+          className={cn(
+            "text-foreground/70 hover:cursor-pointer hover:underline flex items-center gap-2",
+            progressPercentage === 100 && "text-green-500"
+          )}
+        >
+          Today's Goal
+          {progressPercentage === 100 && (
+            <span>
+              <CheckCircle />
+            </span>
+          )}
+        </p>
         <span className="text-primary font-bold">
-          {completedHours.toFixed(1)}h / {goalHours.toFixed(1)}h
+          {getHoutsFromMs(userGoal?.totalStudiedMs)}h /{" "}
+          {getHoutsFromMs(userGoal?.dailyGoalMs)}h
         </span>
       </div>
       <Progress value={progressPercentage} className="h-2" />
@@ -167,6 +187,9 @@ function DailyGoalBar({
   );
 }
 
+function getHoutsFromMs(ms?: number) {
+  return ((ms ?? 0) / (60 * 60 * 1000)).toFixed(1);
+}
 
 // --- Helper: List Item Sub-Component (Unchanged) ---
 function LiveUserListItem({
@@ -177,16 +200,18 @@ function LiveUserListItem({
   isCurrentUser: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-4 p-2 rounded-lg ${
-      isCurrentUser ? 'bg-primary/10' : ''
-    }`}>
+    <div
+      className={`flex items-center gap-4 p-2 rounded-lg ${
+        isCurrentUser ? "bg-primary/10" : ""
+      }`}
+    >
       <Avatar className="border-primary border">
         <AvatarImage src={presence.user.displayName} />
         <AvatarFallback>
           {presence.user.displayName.substring(0, 1)}
         </AvatarFallback>
       </Avatar>
-      
+
       <div className="flex-1">
         <p className="font-medium">{presence.user.displayName}</p>
         <p className="text-sm text-foreground/70">
