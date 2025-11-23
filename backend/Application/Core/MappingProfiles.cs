@@ -26,12 +26,16 @@ public class MappingProfiles : Profile
         CreateMap<User, UserDto>();
         CreateMap<User, UserPressenceDto>()
             .ForMember(d => d.User, opt => opt.MapFrom(s => s));
-        CreateMap<User, UserDailyGoalDto>()
-            .ForMember(d => d.DailyGoalMs, opt => opt.MapFrom(s => (long)s.DailyGoal.TotalMilliseconds))
-            .ForMember(d => d.TotalStudiedMs, opt => opt.MapFrom(s => s.Sessions
-                .Where(session => session.StartedAt >= DateTime.UtcNow.Date)
-                .Sum(session => session.Duration.TotalMilliseconds
-            )));
+        // this kept failing to translate to ef sql, probably from storing timespans instead of doubles everything in ms
+        // so i moved logic to the handler
+        // CreateMap<User, UserDailyGoalDto>()
+        //     .ForMember(d => d.DailyGoalMs, opt => opt.MapFrom(s => (long)s.DailyGoal.TotalMilliseconds));
+        //
+        // .ForMember(d => d.TotalStudiedMs, opt => opt.MapFrom(s => s.Sessions
+        //     .Where(session => session.StartedAt >= DateTime.UtcNow.Date)
+        //     .Sum(session => (long)session.Duration.TotalMilliseconds
+        // )));
+        // .ForMember(d => d.PercentageCompleted, opt => opt.MapFrom((s, d) => d.TotalStudiedMs == 0 ? 0 : (float)d.TotalStudiedMs / d.DailyGoalMs * 100));
         // .ForMember(d => d.User, opt => opt.MapFrom(s => s));
 
         // Sessions Mappings

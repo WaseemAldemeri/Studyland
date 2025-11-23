@@ -1,7 +1,6 @@
 using Application.Core;
 using Application.Core.Extensions;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Dtos.Users;
 using FluentValidation;
 using MediatR;
@@ -24,10 +23,26 @@ public class GetGuildMembersGoals
             if (!await context.Guilds.AnyAsync(g => g.Id == request.Id, cancellationToken))
                 throw RestException.NotFound("The Requested guild doesn't exist");
 
-            return await context.Users
+            return (await context.Users
                 .Where(u => u.GuildId == request.Id)
-                .ProjectTo<UserDailyGoalDto>(mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+                .Select(u =>
+                    new
+                    {
+                        User = u,
+                        Sessions = u.Sessions
+                            .Where(s => s.StartedAt >= DateTime.UtcNow.Date)
+                            .Select(s => s.Duration)
+                            .ToList()
+                    }
+                )
+                .ToListAsync(cancellationToken))
+
+                .Select(e => new UserDailyGoalDto()
+                {
+                    User = mapper.Map<UserDto>(e.User),
+                    DailyGoalMs = (long)e.User.DailyGoal.TotalMilliseconds,
+                    TotalStudiedMs = (long)e.Sessions.Sum(d => d.TotalMilliseconds)
+                }).ToList();
         }
     }
 

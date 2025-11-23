@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Dtos.Users;
 
 public class UserDailyGoalDto
@@ -7,8 +5,7 @@ public class UserDailyGoalDto
     public required UserDto User {get;set;}
     public required long DailyGoalMs { get; set; } 
     public required long TotalStudiedMs { get; set; }
-    [Required]
     public float PercentageCompleted => 
-        TotalStudiedMs == 0 ? 0 : (float)TotalStudiedMs / DailyGoalMs * 100;
+        DailyGoalMs == 0 ? 0 : (float)TotalStudiedMs / DailyGoalMs * 100;
 }
 

@@ -21,6 +21,11 @@ public class AppDbContext(DbContextOptions options)
     {
         base.OnModelCreating(builder);
 
+        // default value 
+        builder.Entity<User>()
+            .Property(u => u.DailyGoal)
+            .HasDefaultValue(TimeSpan.FromHours(3));
+
         // This creates ONE composite index that covers both columns in the correct order
         builder.Entity<Session>()
             .HasIndex(s => new { s.UserId, s.StartedAt });
