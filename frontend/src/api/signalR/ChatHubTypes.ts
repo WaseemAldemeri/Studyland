@@ -7,6 +7,8 @@ export const HubMethods = {
   SendMessage: "SendMessage",
   StartStudying: "StartStudying",
   StopStudying: "StopStudying",
+  StartBreak: "StartBreak",
+  StopBreak: "StopBreak",
   GetPressenceList: "GetPressenceList",
 } as const;
 
@@ -14,8 +16,14 @@ export const HubMethods = {
 export type HubMethodParams = {
   [HubMethods.JoinChannel]: [channelId: string];
   [HubMethods.SendMessage]: [messageContent: string];
-  [HubMethods.StartStudying]: [topicId: string];
+  [HubMethods.StartStudying]: [
+    topicId: string,
+    workMinutes?: number,
+    breakMinutes?: number
+  ];
   [HubMethods.StopStudying]: [];
+  [HubMethods.StartBreak]: [durationMinutes: number];
+  [HubMethods.StopBreak]: [];
   [HubMethods.GetPressenceList]: [];
 };
 
@@ -28,6 +36,8 @@ export const HubEvents = {
   UserStoppedStudying: "UserStoppedStudying",
   UserJoinedChannel: "UserJoinedChannel",
   UserLeftChannel: "UserLeftChannel",
+  UserStartedBreak: "UserStartedBreak",
+  UserStoppedBreak: "UserStoppedBreak",
 } as const;
 
 // This maps the event names to their callback payloads
@@ -36,6 +46,8 @@ export type HubEventCallbacks = {
   [HubEvents.RecievePressenceList]: (users: UserPressenceDto[]) => void;
   [HubEvents.UserStartedStudying]: (user: UserPressenceDto) => void;
   [HubEvents.UserStoppedStudying]: (user: UserPressenceDto) => void;
+  [HubEvents.UserStartedBreak]: (user: UserPressenceDto) => void;
+  [HubEvents.UserStoppedBreak]: (user: UserPressenceDto) => void;
   [HubEvents.UserJoinedChannel]: (user: UserPressenceDto) => void;
   [HubEvents.UserLeftChannel]: (userId: UserPressenceDto) => void;
 };

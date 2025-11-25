@@ -2,16 +2,17 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { User } from '../models/User';
 import type { UserDto } from '../models/UserDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class UsersService {
     /**
-     * @returns UserDto OK
+     * @returns User OK
      * @throws ApiError
      */
-    public static getUsers(): CancelablePromise<Array<UserDto>> {
+    public static getUsers(): CancelablePromise<Array<User>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/Users',

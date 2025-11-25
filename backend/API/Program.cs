@@ -106,6 +106,7 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddSingleton<PressenceService>();
 builder.Services.AddHostedService<ZombieSessionsKiller>();
+builder.Services.AddHostedService<StudyTimerMonitor>();
 
 
 var app = builder.Build();

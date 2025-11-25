@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using API.SignalR;
 using Application.Sessions.Commands;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -8,6 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using static API.Services.ChatPressence.PressenceService;
 
 namespace API.Services.ChatPressence;
 
@@ -57,9 +59,9 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
     {
         var userPresence = await GetUserPressense(userId);
 
-        if (userPresence.Status == PressenceStatus.STUDYING)
+        if (userPresence.Status == PressenceStatus.STUDYING || userPresence.Status == PressenceStatus.ON_BREAK)
         {
-            // we do not remove the user from the channel, we will keep them as studying
+            // we do not remove the user from the channel, we will keep them as studying / on break
             return userPresence;
         }
 
@@ -74,7 +76,7 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
     }
 
 
-    public async Task<UserPressenceDto> StartUserStudying(Guid userId, Guid topicId)
+    public async Task<UserPressenceDto> StartUserStudying(Guid userId, Guid topicId, int? pomodoroDurationMinutes = null, int? nextBreakDurationMinutes = null)
     {
         var userPressense = await GetUserPressense(userId);
         if (userPressense.Status == PressenceStatus.STUDYING) return userPressense;
@@ -85,6 +87,8 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
 
         userPressense.Status = PressenceStatus.STUDYING;
         userPressense.StartedAt = DateTimeOffset.UtcNow;
+        userPressense.TimerDurationMinutes = pomodoroDurationMinutes;
+        userPressense.NextBreakDurationMinutes = nextBreakDurationMinutes;
         userPressense.Topic = await context.Topics.ProjectTo<TopicDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(t => t.Id == topicId)
                 ?? throw new HubException("Can't Find Topic");
@@ -109,39 +113,119 @@ public class ChannelPressence(IServiceScopeFactory scopeFactory, Guid channelId)
 
         await mediator.Send(command);
 
-        userPressense.Status = PressenceStatus.ONLINE;
+        if (userPressense.NextBreakDurationMinutes is not null)
+        {
+            userPressense.Status = PressenceStatus.ON_BREAK;
+            userPressense.TimerDurationMinutes = userPressense.NextBreakDurationMinutes;
+            userPressense.NextBreakDurationMinutes = null;
+        }
+        else
+        {
+            userPressense.Status = PressenceStatus.ONLINE;
+            userPressense.TimerDurationMinutes = null;
+        }
+
         userPressense.StartedAt = DateTimeOffset.UtcNow;
         userPressense.Topic = null;
 
         return userPressense;
     }
-    
-    public async Task<bool> KillZombieSessionsFor(HashSet<Guid> zombieUsers, TimeSpan timeLimit)
+
+
+    public async Task<UserPressenceDto> StartUserBreak(Guid userId, int durationMinutes)
+    {
+        var userPresence = await GetUserPressense(userId);
+
+        if (userPresence.Status == PressenceStatus.STUDYING) await StopUserStudying(userId);
+
+        userPresence.Status = PressenceStatus.ON_BREAK;
+        userPresence.TimerDurationMinutes = durationMinutes;
+        userPresence.NextBreakDurationMinutes = null;
+
+        return userPresence;
+    }
+
+    public async Task<UserPressenceDto> StopUserBreak(Guid userId)
+    {
+        var userPresence = await GetUserPressense(userId);
+
+        if (userPresence.Status != PressenceStatus.ON_BREAK) throw new HubException("User is not on a break");
+
+        userPresence.Status = PressenceStatus.ONLINE;
+        userPresence.TimerDurationMinutes = null;
+        userPresence.NextBreakDurationMinutes = null;
+
+        return userPresence;
+    }
+
+    public bool KillZombieSessionsForUsers(HashSet<Guid> zombieUsers, TimeSpan timeLimit)
     {
         bool killedSessions = false;
 
-        var studyingUsersInChannel = _users
-            .Where(kvp => kvp.Value.Status == PressenceStatus.STUDYING)
-            .Select(kvp => kvp.Key);
+        var studyingOrOnlineUsersInChannel = _users
+            .Where(kvp => kvp.Value.Status == PressenceStatus.STUDYING || kvp.Value.Status == PressenceStatus.ONLINE)
+            .Select(kvp => kvp.Value)
+            .ToList();
 
-        foreach (var userId in studyingUsersInChannel)
+        foreach (var up in studyingOrOnlineUsersInChannel)
         {
-            if (!zombieUsers.Contains(userId)) continue;
+            if (!zombieUsers.Contains(up.User.Id)) continue;
 
-            var userPresence = await GetUserPressense(userId);
-            
-            var duration = DateTimeOffset.UtcNow - userPresence.StartedAt;
+            var duration = DateTimeOffset.UtcNow - up.StartedAt;
 
-            if (duration > timeLimit)
+            // users with no left connection and online should be set to offline
+            // if studying, we check if they reached the time limit, if so, set them offline 
+            // else we keep them studying
+            if (duration > timeLimit || up.Status == PressenceStatus.ONLINE)
             {
-                userPresence.Status = PressenceStatus.OFFLINE;
-                userPresence.Topic = null;
-                userPresence.StartedAt = DateTimeOffset.UtcNow;
-                
+                up.Status = PressenceStatus.OFFLINE;
+                up.Topic = null;
+                up.TimerDurationMinutes = null;
+                up.NextBreakDurationMinutes = null;
+                up.StartedAt = DateTimeOffset.UtcNow;
+
                 killedSessions = true;
             }
         }
-        
+
         return killedSessions;
     }
+
+
+    public async Task<List<PresenceUpdateEvent>> CheckForExpiredTimers()
+    {
+        List<PresenceUpdateEvent> updatesList = [];
+
+        var usersOnTimer = _users.Where(kvp => kvp.Value.TimerDurationMinutes is not null)
+           .Select(kvp => kvp.Value)
+           .ToList();
+
+        foreach (var up in usersOnTimer)
+        {
+            var expired = (up.StartedAt.AddMinutes((double)up.TimerDurationMinutes!) - DateTimeOffset.UtcNow )
+                < TimeSpan.Zero;
+
+            if (!expired) continue;
+
+            switch (up.Status)
+            {
+                case PressenceStatus.STUDYING:
+                    var userPressence = await StopUserStudying(up.User.Id);
+                    updatesList.Add(new (Id, ChatHubEvents.UserStartedBreak, userPressence));
+                    break;
+
+                case PressenceStatus.ON_BREAK:
+                    var userPresence = await StopUserBreak(up.User.Id);
+                    updatesList.Add(new (Id, ChatHubEvents.UserStoppedBreak, userPresence));
+                    break;
+
+                default:
+                    up.TimerDurationMinutes = null;  // timer duration should be null for other states
+                    continue;
+            }
+        }
+
+        return updatesList;
+    }
+    
 }

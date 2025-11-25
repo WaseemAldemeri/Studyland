@@ -55,9 +55,15 @@ public class ChatHub(IMediator mediator, PressenceService pressenceService) : Hu
         await CurrentGroup.SendAsync(ChatHubEvents.ReceiveMessage, message);
     }
 
-    public async Task StartStudying(Guid topicId)
+    public async Task StartStudying(Guid topicId, int? pomodoroDurationMinutes = null, int? nextBreakDurationMinutes = null)
     {
-        var userPressense = await CurrentChannel.StartUserStudying(CurrentUserId, topicId);
+        var userPressense = await CurrentChannel.StartUserStudying(
+            CurrentUserId,
+            topicId,
+            pomodoroDurationMinutes,
+            nextBreakDurationMinutes
+        );
+
         await CurrentGroup.SendAsync(ChatHubEvents.UserStartedStudying, userPressense);
     }
 
@@ -66,7 +72,19 @@ public class ChatHub(IMediator mediator, PressenceService pressenceService) : Hu
         var userPressense = await CurrentChannel.StopUserStudying(CurrentUserId);
         await CurrentGroup.SendAsync(ChatHubEvents.UserStoppedStudying, userPressense);
     }
+
+    public async Task StartBreak(int durationMinutes)
+    {
+        var userPressense = await CurrentChannel.StartUserBreak(CurrentUserId, durationMinutes);
+        await CurrentGroup.SendAsync(ChatHubEvents.UserStartedBreak, userPressense);
+    }
     
+    public async Task StopBreak()
+    {
+        var userPressense = await CurrentChannel.StopUserBreak(CurrentUserId);
+        await CurrentGroup.SendAsync(ChatHubEvents.UserStoppedBreak, userPressense);
+    }
+
     public async Task GetPressenceList()
     {
         await Clients.Caller.SendAsync(ChatHubEvents.RecievePressenceList, CurrentChannel.Users);

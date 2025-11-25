@@ -20,19 +20,20 @@ public class ZombieSessionsKiller(PressenceService pressenceService, IHubContext
                 logger.LogError(ex, "An error occurred while killing zombie sessions.");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
         }
     }
 
     private async Task KillZombiChannels(CancellationToken stoppingToken)
     {
-        var channelsToUpdate = await pressenceService.KillAllZombiSessions(TimeSpan.FromHours(2.5));
+        var channelsToUpdate = pressenceService.KillAllZombiSessions(TimeSpan.FromHours(2.5));
 
-        foreach (var channel in channelsToUpdate)
-        {
-            _ = hubContext.Clients
-                .Groups(channel.Id.ToString())
-                .SendAsync(ChatHubEvents.RecievePressenceList, channel.Users, stoppingToken);
-        }
+        var tasks = channelsToUpdate.Select(c =>
+            hubContext.Clients
+                .Groups(c.Id.ToString())
+                .SendAsync(ChatHubEvents.RecievePressenceList, c.Users, stoppingToken)
+        );
+
+        await Task.WhenAll(tasks);
     }
 }

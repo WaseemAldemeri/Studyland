@@ -26,6 +26,16 @@ public static class ChatHubEvents
     /// Have a paylod of UserPressenceDto.
     /// Client should update the specified user status and announce in the chat / notify.
     /// </summary>
+    public const string UserStoppedBreak = "UserStoppedBreak";
+    /// <summary>
+    /// Have a paylod of UserPressenceDto.
+    /// Client should update the specified user status and announce in the chat / notify.
+    /// </summary>
+    public const string UserStartedBreak = "UserStartedBreak";
+    /// <summary>
+    /// Have a paylod of UserPressenceDto.
+    /// Client should update the specified user status and announce in the chat / notify.
+    /// </summary>
     public const string UserJoinedChannel = "UserJoinedChannel";
     /// <summary>
     /// Have a paylod of UserPressenceDto.

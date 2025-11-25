@@ -62,7 +62,7 @@ public class PressenceService(IServiceScopeFactory scopeFactory)
     }
     
     // returns the modified channels to notify the chathub to send updates
-    public async Task<List<ChannelPressence>> KillAllZombiSessions(TimeSpan timeLimit)
+    public List<ChannelPressence> KillAllZombiSessions(TimeSpan timeLimit)
     {
         List<ChannelPressence> modifiedChannels = [];
 
@@ -73,7 +73,7 @@ public class PressenceService(IServiceScopeFactory scopeFactory)
         
         foreach (var channel in _channels)
         {
-            bool killedSessions = await channel.Value.KillZombieSessionsFor(zombieUsers, timeLimit);
+            bool killedSessions = channel.Value.KillZombieSessionsForUsers(zombieUsers, timeLimit);
             
             if (killedSessions)
             {
@@ -82,5 +82,24 @@ public class PressenceService(IServiceScopeFactory scopeFactory)
         }
         
         return modifiedChannels;
+    }
+
+    public record PresenceUpdateEvent(Guid ChannelId, string Event, UserPressenceDto UserPressence);
+
+    // returns a list of events to allow the chat hub to send the correct updates to the channels and for future notifications
+    public async Task<List<PresenceUpdateEvent>> CheckAllExpiredTimers()
+    {
+        List<PresenceUpdateEvent> updateEvents = [];
+        foreach (var channel in _channels)
+        {
+            List<PresenceUpdateEvent> updates = await channel.Value.CheckForExpiredTimers();
+            
+            if (updates.Count != 0)
+            {
+                updateEvents.AddRange(updates);
+            }
+        }
+        
+        return updateEvents;
     }
 }

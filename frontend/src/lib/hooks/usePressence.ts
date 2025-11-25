@@ -14,7 +14,7 @@ export function usePresence(
   const queryClient = useQueryClient();
   const { currentUser } = useAccount();
   const guildId = currentUser?.guildId;
-  const { playUserStartedStudyingSound, playUserStoppedStudyingSound } =
+  const { playUserStartedStudyingSound, playUserStoppedStudyingSound, playStartBreakSound, playStopBreakSound } =
     useSounds();
 
   // The 'master list' query
@@ -81,6 +81,18 @@ export function usePresence(
       if (updatedUser.user.id !== currentUser.id)
         playUserStoppedStudyingSound();
     };
+    
+    const onUserStartedBreak = (updatedUser: UserPressenceDto) => {
+      onUserPresenceUpdate(updatedUser);
+      if (updatedUser.user.id === currentUser.id)
+        playStartBreakSound();
+    }
+
+    const onUserStoppedBreak = (updatedUser: UserPressenceDto) => {
+      onUserPresenceUpdate(updatedUser);
+      if (updatedUser.user.id === currentUser.id)
+        playStopBreakSound();
+    }
 
     // --- Subscriptions ---
     client.on(HubEvents.RecievePressenceList, onReceivePresenceList);
@@ -88,7 +100,9 @@ export function usePresence(
     client.on(HubEvents.UserJoinedChannel, onUserPresenceUpdate);
     client.on(HubEvents.UserStartedStudying, onUserStartedStudying);
     client.on(HubEvents.UserStoppedStudying, onUserStoppedStudying);
-    client.on(HubEvents.UserLeftChannel, onUserPresenceUpdate); // <-- The change
+    client.on(HubEvents.UserLeftChannel, onUserPresenceUpdate);
+    client.on(HubEvents.UserStartedBreak, onUserStartedBreak);
+    client.on(HubEvents.UserStoppedBreak, onUserStoppedBreak);
 
     // --- THE CLEANUP ---
     return () => {
@@ -97,6 +111,8 @@ export function usePresence(
       client.off(HubEvents.UserStartedStudying, onUserStartedStudying);
       client.off(HubEvents.UserStoppedStudying, onUserStoppedStudying);
       client.off(HubEvents.UserLeftChannel, onUserPresenceUpdate);
+      client.off(HubEvents.UserStartedBreak, onUserStartedBreak);
+      client.off(HubEvents.UserStoppedBreak, onUserStoppedBreak);
     };
   }, [
     client,
@@ -106,13 +122,27 @@ export function usePresence(
     playUserStoppedStudyingSound,
     currentUser,
     sendLocalSystemMessage,
+    playStartBreakSound,
+    playStopBreakSound
   ]);
 
   return {
     presenceList: presenceList || [],
     isLoadingPresence,
-    startStudying: (topicId: string) =>
-      client?.invoke("StartStudying", topicId),
-    stopStudying: () => client?.invoke("StopStudying"),
+
+    startStudying: async (
+      topicId: string,
+      workMinutes?: number,
+      breakMinutes?: number
+    ) =>
+      await client?.invoke("StartStudying", topicId, workMinutes, breakMinutes),
+
+    stopStudying: async () => await client?.invoke("StopStudying"),
+      
+    startBreak: async (durationMinutes: number) => 
+        await client?.invoke("StartBreak", durationMinutes),
+
+    stopBreak: async () =>
+        await client?.invoke("StopBreak"),
   };
 }

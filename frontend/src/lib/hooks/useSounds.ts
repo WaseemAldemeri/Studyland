@@ -7,6 +7,8 @@ const userStoppedStudyingSound = new Audio("/sounds/user-stopped-studying-notifi
 const userStartedStudyingSound = new Audio("/sounds/user-started-studying-notification.wav");
 const startStudyingClickSound = new Audio("/sounds/start-studying-click.wav");
 const stopStudyingClickSound = new Audio("/sounds/stop-studying-click.wav");
+const startBreakSound = new Audio("/sounds/break-started.mp3");
+const stopBreakSound = new Audio("/sounds/break-ended.mp3");
 
 // Add any other sounds you need
 // const studyStartSound = new Audio('/sounds/study-start.mp3');
@@ -46,6 +48,14 @@ export const useSounds = () => {
     playAudio(stopStudyingClickSound);
   }, []);
 
+  const playStartBreakSound = useCallback(() => {
+    playAudio(startBreakSound);
+  }, []);
+
+  const playStopBreakSound = useCallback(() => {
+    playAudio(stopBreakSound);
+  }, []);
+
   // Return the functions for your components to use
   return {
     playMessageSound,
@@ -53,5 +63,7 @@ export const useSounds = () => {
     playUserStartedStudyingSound,
     playStartStudyingClickSound,
     playStopStudyingClickSound,
+    playStartBreakSound,
+    playStopBreakSound
   };
 };

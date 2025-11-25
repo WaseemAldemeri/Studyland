@@ -53,7 +53,7 @@ export default function Dashboard() {
     queryFn: () => TopicsService.getTopics(),
   });
 
-  const { presenceList, isLoadingPresence, startStudying, stopStudying } =
+  const { presenceList, isLoadingPresence, startStudying, stopStudying, startBreak, stopBreak } =
     usePresence();
 
   // --- 4. EFFECTS ---
@@ -103,6 +103,8 @@ export default function Dashboard() {
                 topics={allTopics || []}
                 onStartStudying={startStudying}
                 onStopStudying={stopStudying}
+                onStartBreak={startBreak}
+                onStopBreak={stopBreak}
                 currentUserPresence={currentUserPresence}
                 currentUserGoal={currentUserGoal}
               />

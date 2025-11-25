@@ -10,5 +10,7 @@ export type UserPressenceDto = {
     status: PressenceStatus;
     topic?: TopicDto;
     startedAt: string;
+    timerDurationMinutes?: number | null;
+    nextBreakDurationMinutes?: number | null;
 };
 

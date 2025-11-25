@@ -7,6 +7,6 @@ export type UserDailyGoalDto = {
     user: UserDto;
     dailyGoalMs: number;
     totalStudiedMs: number;
-    percentageCompleted: number;
+    percentageCompleted?: number;
 };
 
