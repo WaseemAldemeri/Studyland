@@ -84,8 +84,10 @@ export function usePresence(
     
     const onUserStartedBreak = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      if (updatedUser.user.id === currentUser.id)
+      if (updatedUser.user.id === currentUser.id) {
         playStartBreakSound();
+        queryClient.invalidateQueries({ queryKey: ["sessionDetails"] });
+      }
     }
 
     const onUserStoppedBreak = (updatedUser: UserPressenceDto) => {

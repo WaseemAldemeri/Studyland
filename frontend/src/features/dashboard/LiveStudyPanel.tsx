@@ -245,7 +245,7 @@ export function LiveStudyPanel({
 
                 <TabsContent value="STOPWATCH"></TabsContent>
 
-                <TabsContent value="POMODORO" className="space-y-3 pt-2">
+                <TabsContent value="POMODORO" className="">
                   <div className="flex gap-2">
                     <div className="space-y-1 flex-1">
                       <Label className="text-[10px] uppercase text-muted-foreground">
