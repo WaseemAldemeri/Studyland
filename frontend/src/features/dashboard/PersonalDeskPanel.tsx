@@ -129,7 +129,7 @@ export function PersonalDeskPanel({
             {!isLoadingGoals &&
               communityList.map((data) => {
                 const isMe = data.user.id === currentUser?.id;
-                const percentage = Math.min(data.percentageCompleted, 100);
+                const percentage = Math.min(data.percentageCompleted ?? 0, 100);
                 const studiedHrs = msToHours(data.totalStudiedMs);
                 const goalHrs = msToHours(data.dailyGoalMs);
 

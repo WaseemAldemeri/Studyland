@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 // Import your generated services and DTO types
 // Make sure the paths are correct for your project structure
-import { StatsService, TopicsService, UsersService } from "@/api/generated";
+import { GuildsService, StatsService, TopicsService } from "@/api/generated";
 import { FilterBar } from "./FilterBar";
 import { Clock, TrendingUp, CalendarDays } from "lucide-react";
 import { StatCard } from "./StatCard";
@@ -52,7 +52,9 @@ export default function StatsPage() {
   // Query 2: Fetch all available users (friends) for the comparison multi-select.
   const { data: allUsers } = useQuery({
     queryKey: ["allUsers"],
-    queryFn: () => UsersService.getUsers(), // Assuming you have a GET /api/users endpoint
+    queryFn: () => GuildsService.getGuildMembers(currentUser!.guildId), // Assuming you have a GET /api/users endpoint
+    select: (data) => data.map(up => up.user),
+    enabled: !!currentUser
   });
 
   // --- MAIN DATA FETCHING ---
