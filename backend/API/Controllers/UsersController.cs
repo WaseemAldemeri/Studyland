@@ -26,7 +26,7 @@ public class UsersController : BaseApiController
         return Ok(user);
     }
 
-    [HttpPatch("/DailyGoal", Name = "UpdateDailyGoal")]
+    [HttpPatch("DailyGoal", Name = "UpdateDailyGoal")]
     public async Task<ActionResult> UpdateDailyGoal([FromBody]long dailyGoalMs)
     {
         var command = new UpdateDailyGoal.Command()

@@ -44,7 +44,7 @@ export class UsersService {
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/DailyGoal',
+            url: '/api/Users/DailyGoal',
             body: requestBody,
             mediaType: 'application/json',
         });

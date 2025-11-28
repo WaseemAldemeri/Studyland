@@ -12,7 +12,6 @@ import type { ApiResult } from './ApiResult';
 import { CancelablePromise } from './CancelablePromise';
 import type { OnCancel } from './CancelablePromise';
 import type { OpenAPIConfig } from './OpenAPI';
-import appAxiosClient from '@/api/appAxiosClient';
 
 export const isDefined = <T>(value: T | null | undefined): value is Exclude<T, null | undefined> => {
     return value !== undefined && value !== null;
@@ -292,7 +291,7 @@ export const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): 
  * @returns CancelablePromise<T>
  * @throws ApiError
  */
-export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions, axiosClient: AxiosInstance = appAxiosClient): CancelablePromise<T> => {
+export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {
     return new CancelablePromise(async (resolve, reject, onCancel) => {
         try {
             const url = getUrl(config, options);
