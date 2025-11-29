@@ -14,10 +14,18 @@ The solution follows a strict **Clean Architecture** approach, further organized
 
   * **`Domain`**: The core of the application. Contains enterprise logic and entities (`User`, `Session`, `Topic`) with zero external dependencies.
   * **`Application`**: Implements business logic using **CQRS** (Command Query Responsibility Segregation) via **MediatR**.
-      * **Vertical Slices**: Features are organized by domain area (e.g., `Application/Sessions/Commands/CreateSession.cs`), keeping related logic together.
+      * **Vertical Slices**: Features are organized by domain area, keeping related logic together.
       * **Behaviors**: Cross-cutting concerns like Validation are handled via MediatR Pipeline Behaviors.
   * **`Persistence`**: Implements database access using **Entity Framework Core** with SQL Server.
   * **`API`**: The entry point, containing minimal controllers that delegate execution immediately to MediatR.
+
+-----
+
+## 💡 Core Features
+
+  * **Real-time Presence:** Users can instantly track the status of friends (Studying, On Break) via a high-performance, in-memory **SignalR Presence System**.
+  * **Advanced Analytics:** Tracks study sessions by topic and time, generating robust analytics for personalized dashboard insights.
+  * **Full-Stack Type Safety:** Utilizes auto-generated API clients and type-safe SignalR wrappers to ensure zero-tolerance for contract drift between **C\#** and **TypeScript/React**.
 
 -----
 
@@ -40,7 +48,7 @@ Standard SignalR calls like `hub.invoke("MethodName")` are error-prone. I implem
 
 -----
 
-## 🧠 Deep Dive: The Real-Time Presence System
+## 🧠 Deep Dive: Real-Time State Management (SignalR)
 
 One of the most complex parts of Studyland is managing the real-time state of users (Online, Studying, On Break) without overloading the database. This is achieved through a sophisticated **in-memory state machine** supported by background workers.
 
@@ -61,15 +69,8 @@ On the frontend, complex real-time logic is abstracted into custom hooks like `u
 
 To maintain data integrity and automate state transitions, two `IHostedService` jobs run in the background:
 
-  * **`ZombieSessionsKiller`**:
-
-      * **Problem**: If a user's browser crashes or internet disconnects abruptly, they might remain "Online" or "Studying" in the memory cache indefinitely.
-      * **Solution**: This job runs periodically to identify "orphaned" connections (users with no active SignalR socket) and cleanly removes them or stops their study session, ensuring accurate room listings.
-
-  * **`StudyTimerMonitor`**:
-
-      * **Problem**: When a user starts a timer (e.g., 25-minute Pomodoro), the server needs to know exactly when it ends to update their status.
-      * **Solution**: Instead of relying on the client (which can be closed), this job scans the in-memory state for expired timers. It automatically transitions users from **"Studying"** to **"On Break"** and broadcasts the update to the room, ensuring synchronized timer states for all peers.
+  * **`ZombieSessionsKiller`**: This job runs periodically to identify "orphaned" connections (users with no active SignalR socket) and cleanly removes them or stops their study session, ensuring accurate room listings.
+  * **`StudyTimerMonitor`**: This job scans the in-memory state for expired timers. It automatically transitions users from **"Studying"** to **"On Break"** and broadcasts the update to the room, ensuring synchronized timer states for all peers.
 
 -----
 
@@ -83,9 +84,7 @@ The frontend is designed to be beautiful, responsive, and app-like.
 
 -----
 
-## 💻 Code Highlights
-
-### Custom FluentValidation Extensions
+## 💻 Custom Validation Extensions
 
 To keep validation logic readable and expressive, custom extension methods were built for **FluentValidation**.
 
@@ -100,29 +99,6 @@ RuleFor(x => x.UserId)
     .Required()
     .MustExistInDb(context.Users); // Automatically checks DB and returns 404-style error if missing
 ```
-
------
-
-## 🚀 Tech Stack
-
-### Backend
-
-  * **Framework**: .NET 9 (ASP.NET Core Web API)
-  * **Language**: C\#
-  * **Database**: Microsoft SQL Server
-  * **ORM**: Entity Framework Core
-  * **Real-time**: SignalR (WebSockets)
-  * **Architecture**: Clean Architecture, Vertical Slices, CQRS (MediatR)
-  * **Validation**: FluentValidation
-  * **Documentation**: OpenAPI (Swagger)
-
-### Frontend
-
-  * **Library**: React 19
-  * **Build Tool**: Vite
-  * **State Management**: TanStack Query (React Query)
-  * **Styling**: Tailwind CSS, Shadcn UI
-  * **Routing**: React Router v7
 
 -----
 
@@ -146,15 +122,16 @@ Run the entire stack (Database + Backend + Frontend) with one command.
 
 ```bash
 # Run via Docker Compose
-docker-compose up --build
+docker compose -f docker-compose.prod up --build
 ```
 
 ### Method 2: Manual Local Development
 
 **1. Database**
+Install Sql server locally or run the database only using docker
 
 ```bash
-docker-compose up -d db
+docker compose up -d
 ```
 
 **2. Backend**
@@ -175,6 +152,6 @@ npm run dev
 
 -----
 
-## 📜 License
+## 📜 LICENSE
 
-This project is open-source.
+This project is released under the **MIT License**.
