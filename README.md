@@ -4,11 +4,22 @@
 
 Built with a focus on **Clean Architecture** utilizing **Vertical Slices** and **Domain-Driven Design (DDD)** principles, it leverages the power of **.NET 9** for a robust backend and **React 19** for a high-performance, responsive frontend.
 
+!(media/studyland_dashboard_screenshot.png)
+
+## 🚀 Live Demo & Access
+
+**Live URL:** studyland.rufususmle.com
+
+To immediately explore the real-time features and architecture of the platform, use the dedicated demo account:
+
+* **Email:** `demo@example.com`
+* **Password:** `demouser`
+  
 -----
 
 ## 🏗️ Architecture: Clean Architecture & Vertical Slices
 
-The solution follows a strict **Clean Architecture** approach, further organized by **Vertical Slices** within the Application layer. This ensures that all logic related to a specific feature (e.g., "Sessions")—from API endpoints to database queries—is cohesive and easy to maintain.
+The solution follows a strict **Clean Architecture** approach, further organized by **Vertical Slices** within the Application layer. This ensures that all logic related to a specific feature (e.g., "Sessions") is cohesive and easy to maintain.
 
 ### Backend Layers
 
@@ -116,33 +127,57 @@ While the architecture (Clean Architecture + CQRS) is specifically designed to s
 
 ## 🛠️ Setup & Installation
 
+To run this project locally, start by cloning the repository:
+
+```bash
+git clone https://github.com/WaseemAldemeri/Studyland.git
+cd Studyland
+```
+
+You can then run the application using either method below.
+
 ### Method 1: Docker Compose (Recommended)
 
-Run the entire stack (Database + Backend + Frontend) with one command.
+This method only requires **Docker** to be installed and handles the database, backend, and frontend containers automatically.
+
+Run the entire stack with one command from the project root (`/Studyland`):
 
 ```bash
 # Run via Docker Compose
-docker compose -f docker-compose.prod up --build
+docker compose -f docker-compose.prod.yml up --build -d
 ```
+
+Once the containers are running, navigate to the frontend: **http://localhost:3000**
+
+You can immediately log in to the application using the seeded demo user:
+
+  * **Email:** `demo@example.com`
+  * **Password:** `demouser`
+
+-----
 
 ### Method 2: Manual Local Development
 
+This method requires **Node.js** and the **.NET 9 SDK** to be installed on your machine.
+
 **1. Database**
-Install Sql server locally or run the database only using docker
+Install Sql server locally or run the database only using Docker:
 
 ```bash
 docker compose up -d
 ```
 
-**2. Backend**
-Navigate to `backend/API` and run. The app will automatically apply migrations and seed data on startup.
+**2. Backend Setup & Run**
+Navigate to the backend folder, restore dependencies, and run the API. The app will automatically apply migrations and seed data on startup.
 
 ```bash
 cd backend/API
+dotnet restore
 dotnet watch run
 ```
 
-**3. Frontend**
+**3. Frontend Setup & Run**
+Open a new terminal window, navigate to the frontend folder, install dependencies, and start the development server.
 
 ```bash
 cd frontend
