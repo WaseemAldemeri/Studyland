@@ -4,7 +4,9 @@
 
 Built with a focus on **Clean Architecture** utilizing **Vertical Slices** and **Domain-Driven Design (DDD)** principles, it leverages the power of **.NET 9** for a robust backend and **React 19** for a high-performance, responsive frontend.
 
-!(media/studyland_dashboard_screenshot.png)
+![main dashboard](StudylandDashboard.png)
+![stats dashboard](StudylandStats.png)
+
 
 ## 🚀 Live Demo & Access
 
