@@ -24,7 +24,7 @@ services:
       - Jwt__SecretKey=${JWT_SECRET}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
-      - Jwt__ExpirationInMinutes=1440
+      - Jwt__ExpirationInMinutes=${JWT_ExpirationInMinutes}
     depends_on:
       - db
 

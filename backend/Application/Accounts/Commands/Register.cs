@@ -32,6 +32,17 @@ public class Register
 
             var user = mapper.Map<User>(request);
 
+            // currently we add all users to a default guild, later on they can create, display guild, join etc
+            var defaultGuild = await context.Guilds.FirstOrDefaultAsync(g => g.Name == "Default", cancellationToken);
+            if (defaultGuild is null)
+            {
+                var generalGuild = await context.Guilds.AddAsync(new() { Name = "Default" });
+                var generalChatChannel = await context.ChatChannels.AddAsync(new() { Name = "General", GuildId = generalGuild.Entity.Id });
+                defaultGuild = generalGuild.Entity;
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            user.GuildId = defaultGuild.Id;
+
             var result = await userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)

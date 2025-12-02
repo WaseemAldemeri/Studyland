@@ -23,6 +23,7 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger, IHostEnvir
         }
         catch (Exception ex)
         {
+            logger.LogError("Unhandled exception: {ex}", ex);
             await HandleUncaughtException(context, ex);
         }
     }

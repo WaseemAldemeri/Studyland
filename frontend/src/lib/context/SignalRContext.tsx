@@ -7,7 +7,7 @@ import {
 } from "react";
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 import { ChatHubClient, HUB_URL } from "@/api/signalR/ChatHubClient";
-import { FullPageLoader } from "@/components/shared/FullPageLoader"; // <-- Import your loader
+import { FullPageLoader } from "@/components/shared/FullPageLoader";
 import { useAccount } from "../hooks/useAccount";
 
 // 1. Create the Context to hold the client
@@ -46,6 +46,9 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     startConnection();
 
     const attemptReconnect = async () => {
+      if (!currentUser) {
+        return;
+      }
       console.log(`hub state is: ${connection.state}`);
       if (connection.state === HubConnectionState.Disconnected) {
         console.log("Attempting to reconnect to chat hub.");
@@ -59,12 +62,13 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // window.addEventListener("pageshow", attemptReconnect);
-    document.addEventListener("visibilitychange", attemptReconnect);
+    // changed to page show to test on mobile phones pwa
+    window.addEventListener("pageshow", attemptReconnect);
+    // document.addEventListener("visibilitychange", attemptReconnect);
 
     return () => {
-      // window.removeEventListener("pageshow", attemptReconnect);
-      document.removeEventListener("visibilitychange", attemptReconnect);
+      window.removeEventListener("pageshow", attemptReconnect);
+      // document.removeEventListener("visibilitychange", attemptReconnect);
       connection.stop();
       setClient(null);
       console.log("SignalR Disconnected.");

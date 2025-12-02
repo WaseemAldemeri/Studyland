@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   CheckCircle,
@@ -34,7 +33,6 @@ import {
 } from "@/components/ui/dialog";
 
 // Utils & Hooks
-import { useSounds } from "@/lib/hooks/useSounds";
 import { cn } from "@/lib/utils/utils";
 import { TickingTimer } from "./TickingTimer";
 import { DailyGoalModal } from "./DailyGoalFormModal";
@@ -119,10 +117,6 @@ export function LiveStudyPanel({
   onStartBreak,
   onStopBreak,
 }: LiveStudyPanelProps) {
-  const queryClient = useQueryClient();
-  const { playStartStudyingClickSound, playStopStudyingClickSound } =
-    useSounds();
-
   // --- LOCAL STATE ---
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [mode, setMode] = useState<"STOPWATCH" | "POMODORO">("STOPWATCH");
@@ -152,8 +146,6 @@ export function LiveStudyPanel({
   const handleStart = () => {
     if (!selectedTopicId) return toast.error("Select a topic first!");
 
-    playStartStudyingClickSound();
-
     if (mode === "STOPWATCH") {
       onStartStudying(selectedTopicId, undefined, undefined);
     } else {
@@ -166,9 +158,7 @@ export function LiveStudyPanel({
       await onStopBreak();
     } else {
       await onStopStudying();
-      playStopStudyingClickSound();
     }
-    queryClient.invalidateQueries({ queryKey: ["sessionDetails"] });
   };
 
   const handleManualBreak = async (duration: number) => {

@@ -14,8 +14,14 @@ export function usePresence(
   const queryClient = useQueryClient();
   const { currentUser } = useAccount();
   const guildId = currentUser?.guildId;
-  const { playUserStartedStudyingSound, playUserStoppedStudyingSound, playStartBreakSound, playStopBreakSound } =
-    useSounds();
+  const {
+    playUserStartedStudyingSound,
+    playUserStoppedStudyingSound,
+    playStartBreakSound,
+    playStopBreakSound,
+    playStartStudyingClickSound,
+    playStopStudyingClickSound,
+  } = useSounds();
 
   // The 'master list' query
   const { data: presenceList, isLoading: isLoadingPresence } = useQuery({
@@ -67,8 +73,11 @@ export function usePresence(
           `${updatedUser.user.displayName} has started studying ${updatedUser.topic?.title}`
         );
       }
-      if (updatedUser.user.id !== currentUser.id)
+      if (updatedUser.user.id !== currentUser.id) {
         playUserStartedStudyingSound();
+      } else {
+        playStartStudyingClickSound();
+      }
     };
 
     const onUserStoppedStudying = (updatedUser: UserPressenceDto) => {
@@ -78,23 +87,28 @@ export function usePresence(
           `${updatedUser.user.displayName} has stopped studying`
         );
       }
-      if (updatedUser.user.id !== currentUser.id)
+      if (updatedUser.user.id !== currentUser.id) {
         playUserStoppedStudyingSound();
+      } else {
+        playStopStudyingClickSound();
+        queryClient.invalidateQueries({ queryKey: ["sessionDetails"] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["guildGoals"] });
     };
-    
+
     const onUserStartedBreak = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
       if (updatedUser.user.id === currentUser.id) {
         playStartBreakSound();
         queryClient.invalidateQueries({ queryKey: ["sessionDetails"] });
       }
-    }
+      queryClient.invalidateQueries({ queryKey: ["guildGoals"] });
+    };
 
     const onUserStoppedBreak = (updatedUser: UserPressenceDto) => {
       onUserPresenceUpdate(updatedUser);
-      if (updatedUser.user.id === currentUser.id)
-        playStopBreakSound();
-    }
+      if (updatedUser.user.id === currentUser.id) playStopBreakSound();
+    };
 
     // --- Subscriptions ---
     client.on(HubEvents.RecievePressenceList, onReceivePresenceList);
@@ -125,7 +139,9 @@ export function usePresence(
     currentUser,
     sendLocalSystemMessage,
     playStartBreakSound,
-    playStopBreakSound
+    playStopBreakSound,
+    playStartStudyingClickSound,
+    playStopStudyingClickSound
   ]);
 
   return {
@@ -140,11 +156,10 @@ export function usePresence(
       await client?.invoke("StartStudying", topicId, workMinutes, breakMinutes),
 
     stopStudying: async () => await client?.invoke("StopStudying"),
-      
-    startBreak: async (durationMinutes: number) => 
-        await client?.invoke("StartBreak", durationMinutes),
 
-    stopBreak: async () =>
-        await client?.invoke("StopBreak"),
+    startBreak: async (durationMinutes: number) =>
+      await client?.invoke("StartBreak", durationMinutes),
+
+    stopBreak: async () => await client?.invoke("StopBreak"),
   };
 }

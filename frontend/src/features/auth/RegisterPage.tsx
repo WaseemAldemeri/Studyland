@@ -1,7 +1,7 @@
 // src/pages/RegisterPage.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,10 +41,18 @@ export default function RegisterPage() {
   const {
     registerUserMtn: { mutate: registerUser, isPending },
   } = useAccount();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const onSubmit = (data: RegisterForm) => {
     // The Zod schema doesn't include 'confirmPassword' in the final data
     // because it's only for validation. We pass the rest to the API.
-    registerUser(data);
+    registerUser(data, {
+      onSuccess: () => {
+        navigate(location.state?.from ?? "/dashboard");
+      },
+    });
   };
 
   return (

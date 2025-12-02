@@ -91,19 +91,32 @@ public class Migrator
 
         Console.WriteLine("\nStep 3: Transforming and seeding data...");
 
-        var guild = await newDbContext.Guilds.AddAsync(new() { Name = "Main" });
-        var chatChannel = newDbContext.ChatChannels.AddAsync(new() { Name = "General", GuildId = guild.Entity.Id});
+        var discordGuild = await newDbContext.Guilds.AddAsync(new() { Name = "Main" });
+        var discordChatChannel = await newDbContext.ChatChannels.AddAsync(new() { Name = "General", GuildId = discordGuild.Entity.Id });
+
+        // default is used for anyone new who registerrs
+        var generalGuild = await newDbContext.Guilds.AddAsync(new() { Name = "Default" });
+        var generalChatChannel = await newDbContext.ChatChannels.AddAsync(new() { Name = "General", GuildId = generalGuild.Entity.Id });
 
 
         var usersToAdd = oldUsers.Where(u => DiscordToNameMap.ContainsKey(u.id)).Select(user => new User()
         {
-            GuildId = guild.Entity.Id,
+            GuildId = discordGuild.Entity.Id,
             DiscordId = user.id,
             DisplayName = DiscordToNameMap.First(x => x.Key == user.id).Value,
             DateJoined = DateTimeOffset.FromUnixTimeMilliseconds(user.date),
             UserName = $"{DiscordToNameMap.First(x => x.Key == user.id).Value.ToLower()}@gmail.com",
             Email = $"{DiscordToNameMap.First(x => x.Key == user.id).Value.ToLower()}@gmail.com",
         }).ToList();
+
+        // demo user
+        usersToAdd.Add(new()
+        {
+            GuildId = generalGuild.Entity.Id,
+            DisplayName = "demouser",
+            UserName = "demo@example.com",
+            Email = "demo@example.com"
+        });
 
         foreach (var user in usersToAdd)
         {
