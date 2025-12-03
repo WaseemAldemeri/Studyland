@@ -4,90 +4,130 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
+  useRef,
 } from "react";
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 import { ChatHubClient, HUB_URL } from "@/api/signalR/ChatHubClient";
 import { FullPageLoader } from "@/components/shared/FullPageLoader";
 import { useAccount } from "../hooks/useAccount";
 
-// 1. Create the Context to hold the client
-const SignalRContext = createContext<ChatHubClient | null>(null);
+// Define the shape of our new Context
+interface SignalRContextValue {
+  client: ChatHubClient | null;
+  /**
+   * Registers a callback to be run whenever SignalR successfully reconnects.
+   * Returns a function to unregister (cleanup) the callback.
+   */
+  registerReconnectAction: (action: () => void) => () => void;
+}
 
-// 2. Create the Provider component
+const SignalRContext = createContext<SignalRContextValue | null>(null);
+
 export function SignalRProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAccount();
-
   const [client, setClient] = useState<ChatHubClient | null>(null);
+
+  // We use a ref for tasks so we can access the current list inside 
+  // the SignalR event callback without needing to reset the listener.
+  const reconnectActions = useRef<Array<() => void>>([]);
+
+  const registerReconnectAction = useCallback((action: () => void) => {
+    reconnectActions.current.push(action);
+    // Return cleanup function to remove this specific action
+    return () => {
+      reconnectActions.current = reconnectActions.current.filter((a) => a !== action);
+    };
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
       return;
     }
 
+    // 1. Build Connection
     const connection = new HubConnectionBuilder()
       .withUrl(HUB_URL, {
         accessTokenFactory: () => localStorage.getItem("access-token") || "",
       })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect() // Crucial: handles the sleep/wake retry loop
       .build();
 
     const chatClient = new ChatHubClient(connection);
 
+    // 2. Define Start Logic
     const startConnection = async () => {
       try {
-        await connection.start();
-        console.log("✅ SignalR Connected Globally.");
-        setClient(chatClient);
+        if (connection.state === HubConnectionState.Disconnected) {
+          await connection.start();
+          console.log("✅ SignalR Connected Globally.");
+          setClient(chatClient);
+        }
       } catch (e) {
         console.error("❌ SignalR Connection failed: ", e);
       }
     };
 
+    // 3. Handle "Soft" Reconnects (AutomaticReconnect)
+    // This fires when SignalR recovers the connection without losing the client instance
+    connection.onreconnected(() => {
+      console.log("🔄 SignalR Auto-Reconnected. Refetching subscriptions...");
+      reconnectActions.current.forEach((action) => {
+        try {
+          action();
+        } catch (err) {
+          console.error("Error executing reconnect action:", err);
+        }
+      });
+    });
+
+    connection.onclose((error) => {
+      console.warn("⚠️ SignalR Connection closed.", error);
+    });
+
+    // 4. Initial Start
     startConnection();
 
-    const attemptReconnect = async () => {
-      if (!currentUser) {
-        return;
-      }
-      console.log(`hub state is: ${connection.state}`);
-      if (connection.state === HubConnectionState.Disconnected) {
-        console.log("Attempting to reconnect to chat hub.");
+    // 5. Handle "Hard" Reconnects (Page Sleep/Mobile Backgrounding)
+    // Sometimes the browser kills the socket entirely. We use pageshow to force a check.
+    const handlePageShow = async () => {
+      if (document.visibilityState === "visible" && connection.state === HubConnectionState.Disconnected) {
+        console.log("📱 Tab woke up & Disconnected. Force restarting...");
         await startConnection();
-      }
-      console.log(`refreshing users pressences`);
-      try {
-        await connection.invoke("GetPressenceList");
-      } catch (ex) {
-        console.error("failed to invoke GetPressenseList", ex);
+        // If we force restarted, we essentially have a "new" connection, 
+        // but the client state might persist. Let's force run actions just in case.
+        reconnectActions.current.forEach((action) => action());
       }
     };
 
-    // changed to page show to test on mobile phones pwa
-    window.addEventListener("pageshow", attemptReconnect);
-    // document.addEventListener("visibilitychange", attemptReconnect);
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handlePageShow);
 
+    // 6. Cleanup
     return () => {
-      window.removeEventListener("pageshow", attemptReconnect);
-      // document.removeEventListener("visibilitychange", attemptReconnect);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handlePageShow);
       connection.stop();
       setClient(null);
-      console.log("SignalR Disconnected.");
+      console.log("SignalR Disconnected (Cleanup).");
     };
-  }, [currentUser]);
+  }, [currentUser]); // Re-run only if user changes
 
-  // If the client is not yet connected, show a loader
-  // and do not render the rest of the app.
+  // Loading State
   if (!client && currentUser) {
     return <FullPageLoader />;
   }
-  // Only render children *after* the client is ready and non-null
+
+  const contextValue ={ client, registerReconnectAction };
+
   return (
-    <SignalRContext.Provider value={client}>{children}</SignalRContext.Provider>
+    <SignalRContext.Provider value={contextValue}>
+      {children}
+    </SignalRContext.Provider>
   );
 }
 
-// 3. Create a custom hook to easily access the client
-// This ensures the client is not null before use
+// Hook
 // eslint-disable-next-line react-refresh/only-export-components
 export const useSignalR = () => {
   const context = useContext(SignalRContext);

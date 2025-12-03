@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type UserPressenceDto, GuildsService } from "@/api/generated";
 import { HubEvents } from "@/api/signalR/ChatHubTypes";
@@ -9,8 +9,7 @@ import { useSignalR } from "../context/SignalRContext";
 export function usePresence(
   sendLocalSystemMessage?: (content: string) => void
 ) {
-  const client = useSignalR(); // 2. Get the global, persistent client
-
+  const { client, registerReconnectAction } = useSignalR(); // Get registry
   const queryClient = useQueryClient();
   const { currentUser } = useAccount();
   const guildId = currentUser?.guildId;
@@ -28,16 +27,24 @@ export function usePresence(
     queryKey: ["guildMembers", guildId],
     queryFn: () => GuildsService.getGuildMembers(guildId!),
     enabled: !!guildId,
-    staleTime: Infinity, // i think this must be infinity else we will show offline every 5 minutes
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
+
+  // Define the logic to refresh presence
+  const refreshPresence = useCallback(() => {
+    if(client) {
+        console.log("Refreshing presence list...");
+        client.invoke("GetPressenceList").catch(err => console.error("GetPressenceList failed", err));
+    }
+  }, [client]);
 
   useEffect(() => {
     if (!client || !guildId) return;
 
     const queryKey = ["guildMembers", guildId];
 
-    // --- CALLBACK 1: Handles the full list ---
+    // --- CALLBACKS ---
     const onReceivePresenceList = (activeUsers: UserPressenceDto[]) => {
       const activeMap = new Map(activeUsers.map((u) => [u.user.id, u]));
 
@@ -52,13 +59,11 @@ export function usePresence(
       );
     };
 
-    // --- CALLBACK 2: Handles ALL single-user updates ---
     const onUserPresenceUpdate = (updatedUser: UserPressenceDto) => {
       queryClient.setQueryData(
         queryKey,
         (oldData: UserPressenceDto[] | undefined) => {
           if (!oldData) return [];
-          // Blindly replace the user in the list
           return oldData.map((u) =>
             u.user.id === updatedUser.user.id ? updatedUser : u
           );
@@ -112,7 +117,6 @@ export function usePresence(
 
     // --- Subscriptions ---
     client.on(HubEvents.RecievePressenceList, onReceivePresenceList);
-    // All these events now use the SAME callback
     client.on(HubEvents.UserJoinedChannel, onUserPresenceUpdate);
     client.on(HubEvents.UserStartedStudying, onUserStartedStudying);
     client.on(HubEvents.UserStoppedStudying, onUserStoppedStudying);
@@ -120,7 +124,16 @@ export function usePresence(
     client.on(HubEvents.UserStartedBreak, onUserStartedBreak);
     client.on(HubEvents.UserStoppedBreak, onUserStoppedBreak);
 
-    // --- THE CLEANUP ---
+    // --- Initial Action ---
+    // We might not want to invoke this immediately if the HTTP query handles the initial load,
+    // but we definitely want to invoke it on Reconnect.
+    // If you want to ensure sync on mount, uncomment next line:
+    // refreshPresence(); 
+
+    // --- Register for Reconnects ---
+    const unregisterReconnect = registerReconnectAction(refreshPresence);
+
+    // --- Cleanup ---
     return () => {
       client.off(HubEvents.RecievePressenceList, onReceivePresenceList);
       client.off(HubEvents.UserJoinedChannel, onUserPresenceUpdate);
@@ -129,19 +142,23 @@ export function usePresence(
       client.off(HubEvents.UserLeftChannel, onUserPresenceUpdate);
       client.off(HubEvents.UserStartedBreak, onUserStartedBreak);
       client.off(HubEvents.UserStoppedBreak, onUserStoppedBreak);
+      
+      unregisterReconnect();
     };
   }, [
     client,
     guildId,
     queryClient,
-    playUserStartedStudyingSound,
-    playUserStoppedStudyingSound,
     currentUser,
     sendLocalSystemMessage,
+    playUserStartedStudyingSound,
+    playUserStoppedStudyingSound,
     playStartBreakSound,
     playStopBreakSound,
     playStartStudyingClickSound,
-    playStopStudyingClickSound
+    playStopStudyingClickSound,
+    refreshPresence,
+    registerReconnectAction
   ]);
 
   return {
