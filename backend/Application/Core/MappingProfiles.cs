@@ -3,6 +3,7 @@ using Application.ChatMessages.Commands;
 using Application.ChatMessages.Queries;
 using Application.Sessions.Commands;
 using Application.Stats.Queries;
+using Application.Topics.Commands;
 using AutoMapper;
 using Domain;
 using Dtos.Accounts;
@@ -21,6 +22,7 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<Topic, TopicDto>();
+        CreateMap<CreateTopic.Command, Topic>();
         CreateMap<Award, AwardDto>();
 
         CreateMap<User, UserDto>();

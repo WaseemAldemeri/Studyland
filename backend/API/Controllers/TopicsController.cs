@@ -1,3 +1,4 @@
+using Application.Topics.Commands;
 using Application.Topics.Queries;
 using Dtos.Topics;
 using Microsoft.AspNetCore.Mvc;
@@ -11,4 +12,13 @@ public class TopicsController : BaseApiController
     {
         return Ok(await Mediator.Send(new GetTopics.Query()));
     }
+
+    [HttpPost(Name = "CreateTopic")]
+    public async Task<ActionResult> Create([FromBody] CreateTopicDto createTopicDto)
+    {
+        var command = new CreateTopic.Command() { Title = createTopicDto.Title };
+        await Mediator.Send(command);
+        return Ok();
+    }
+
 }
