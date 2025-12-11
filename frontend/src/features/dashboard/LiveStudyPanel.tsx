@@ -60,6 +60,8 @@ interface LiveStudyPanelProps {
   onStopBreak: () => Promise<void>;
 }
 
+const STORAGE_KEY = "studyland-last-topic-id"
+
 const statusSortPriority: Record<string, number> = {
   STUDYING: 1,
   ON_BREAK: 2,
@@ -133,9 +135,14 @@ export function LiveStudyPanel({
 
   // --- EFFECT: Default Topic ---
   useEffect(() => {
-    if (!selectedTopicId && topics.length > 0) {
-      const defaultTopic =
-        topics.find((t) => t.title === "Uncategorized") || topics[0];
+    if (selectedTopicId || topics.length === 0) return;
+    const savedId = localStorage.getItem(STORAGE_KEY);
+    const savedTopicExists = savedId && topics.some((t) => t.id === savedId);
+    if (savedTopicExists) {
+      setSelectedTopicId(savedId);
+    } else {
+      // 4. Fallback to Uncategorized or first available
+      const defaultTopic = topics.find((t) => t.title === "Uncategorized") || topics[0];
       if (defaultTopic) {
         setSelectedTopicId(defaultTopic.id);
       }
@@ -159,6 +166,12 @@ export function LiveStudyPanel({
     } else {
       await onStopStudying();
     }
+  };
+  
+  // --- Wrapper to save to storage on change ---
+  const handleTopicChange = (newId: string) => {
+    setSelectedTopicId(newId);
+    localStorage.setItem(STORAGE_KEY, newId);
   };
 
   const handleManualBreak = async (duration: number) => {
@@ -195,7 +208,7 @@ export function LiveStudyPanel({
             <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
               <Select
                 value={selectedTopicId || ""}
-                onValueChange={setSelectedTopicId}
+                onValueChange={handleTopicChange}
               >
                 <SelectTrigger className="w-full bg-background">
                   <SelectValue placeholder="Select a topic..." />
