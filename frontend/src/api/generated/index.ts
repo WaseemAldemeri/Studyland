@@ -16,6 +16,7 @@ export type { ChatMessage } from './models/ChatMessage';
 export type { ChatMessageDto } from './models/ChatMessageDto';
 export type { ChatMessageType } from './models/ChatMessageType';
 export type { CreateSessionDto } from './models/CreateSessionDto';
+export type { CreateTopicDto } from './models/CreateTopicDto';
 export type { DailyActivity } from './models/DailyActivity';
 export type { Guild } from './models/Guild';
 export type { GuildDto } from './models/GuildDto';

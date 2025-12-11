@@ -43,6 +43,7 @@ import {
   type TopicDto,
   type UserDailyGoalDto,
 } from "@/api/generated";
+import { CreateTopicModal } from "./CreateTopicModal";
 
 // --- PROPS ---
 interface LiveStudyPanelProps {
@@ -60,7 +61,7 @@ interface LiveStudyPanelProps {
   onStopBreak: () => Promise<void>;
 }
 
-const STORAGE_KEY = "studyland-last-topic-id"
+const STORAGE_KEY = "studyland-last-topic-id";
 
 const statusSortPriority: Record<string, number> = {
   STUDYING: 1,
@@ -126,6 +127,7 @@ export function LiveStudyPanel({
 
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
+  const [isCreateTopicOpen, setIsCreateTopicOpen] = useState(false);
 
   // Derived State
   const status = currentUserPresence?.status;
@@ -142,7 +144,8 @@ export function LiveStudyPanel({
       setSelectedTopicId(savedId);
     } else {
       // 4. Fallback to Uncategorized or first available
-      const defaultTopic = topics.find((t) => t.title === "Uncategorized") || topics[0];
+      const defaultTopic =
+        topics.find((t) => t.title === "Uncategorized") || topics[0];
       if (defaultTopic) {
         setSelectedTopicId(defaultTopic.id);
       }
@@ -167,7 +170,7 @@ export function LiveStudyPanel({
       await onStopStudying();
     }
   };
-  
+
   // --- Wrapper to save to storage on change ---
   const handleTopicChange = (newId: string) => {
     setSelectedTopicId(newId);
@@ -219,6 +222,17 @@ export function LiveStudyPanel({
                       {t.title}
                     </SelectItem>
                   ))}
+                  <Separator />
+                  <button
+                    onClick={(e) => {
+                        // Prevent the select from consuming the click immediately
+                        e.preventDefault(); 
+                        setIsCreateTopicOpen(true);
+                    }}
+                    className="text-primary text-sm p-2 w-full rounded-md cursor-pointer hover:bg-primary/40"
+                  >
+                    Create Topic
+                  </button>
                 </SelectContent>
               </Select>
 
@@ -240,7 +254,11 @@ export function LiveStudyPanel({
                     className="text-xs data-[state=active]:bg-secondary"
                   >
                     <div className="flex items-center gap-1">
-                      <img src="pomodorotimer.svg" className="size-4" alt="pomo" />
+                      <img
+                        src="pomodorotimer.svg"
+                        className="size-4"
+                        alt="pomo"
+                      />
                       Pomodoro
                     </div>{" "}
                   </TabsTrigger>
@@ -316,9 +334,7 @@ export function LiveStudyPanel({
                       durationMinutes={currentUserPresence.timerDurationMinutes}
                     />
                   ) : (
-                    <TickingTimer
-                      startTime={currentUserPresence!.startedAt}
-                    />
+                    <TickingTimer startTime={currentUserPresence!.startedAt} />
                   )}
                 </div>
 
@@ -344,8 +360,7 @@ export function LiveStudyPanel({
                 <Button
                   onClick={handleStop}
                   className={cn(
-                    (isStudying &&
-                      currentUserPresence!.timerDurationMinutes) ||
+                    (isStudying && currentUserPresence!.timerDurationMinutes) ||
                       isOnBreak
                       ? "col-span-2"
                       : "",
@@ -382,6 +397,14 @@ export function LiveStudyPanel({
           onClose={() => setIsBreakModalOpen(false)}
           onConfirm={handleManualBreak}
         />
+        <CreateTopicModal 
+            isOpen={isCreateTopicOpen} 
+            onClose={() => setIsCreateTopicOpen(false)}
+            onSuccess={(newId) => {
+              // Automatically select the new topic
+              handleTopicChange(newId);
+            }}
+        />
       </CardContent>
     </Card>
   );
@@ -405,8 +428,13 @@ function AvatarWithProgress({
     presence.timerDurationMinutes!
   );
 
-  const ringVisible = !!presence.timerDurationMinutes && (isStudying || isOnBreak);
-  const colorClass = isOnBreak ?  "text-green-500" : isStudying ? "text-orange-600" : "text-primary";
+  const ringVisible =
+    !!presence.timerDurationMinutes && (isStudying || isOnBreak);
+  const colorClass = isOnBreak
+    ? "text-green-500"
+    : isStudying
+    ? "text-orange-600"
+    : "text-primary";
 
   // Size Config
   // Total size of the ring container (larger than the 36px avatar)
@@ -414,8 +442,13 @@ function AvatarWithProgress({
   const containerSize = "h-[44px] w-[44px]";
 
   return (
-    <div className={cn("relative flex items-center justify-center", containerSize, className)}>
-      
+    <div
+      className={cn(
+        "relative flex items-center justify-center",
+        containerSize,
+        className
+      )}
+    >
       {/* --- THE CSS RING --- */}
       {ringVisible ? (
         <div
@@ -426,12 +459,14 @@ function AvatarWithProgress({
           style={{
             // 1. The Paint: Conic gradient for the progress
             background: `conic-gradient(currentColor ${percentage}%, transparent 0)`,
-            
+
             // 2. The Cutter: Mask out the center to create the "Rim"
             // "transparent 62%" determines the inner radius (hole size)
             // "black 63%" determines where the visible ring starts
-            maskImage: "radial-gradient(closest-side, transparent 62%, black 63%)",
-            WebkitMaskImage: "radial-gradient(closest-side, transparent 62%, black 63%)", // Safari support
+            maskImage:
+              "radial-gradient(closest-side, transparent 62%, black 63%)",
+            WebkitMaskImage:
+              "radial-gradient(closest-side, transparent 62%, black 63%)", // Safari support
           }}
         />
       ) : (
@@ -568,11 +603,7 @@ function BreakSelectionModal({
         </DialogHeader>
         <div className="grid grid-cols-3 gap-4 py-4">
           {[5, 10, 15, 30, 45, 60].map((min) => (
-            <Button
-              key={min}
-              variant="outline"
-              onClick={() => onConfirm(min)}
-            >
+            <Button key={min} variant="outline" onClick={() => onConfirm(min)}>
               {min}m
             </Button>
           ))}
@@ -589,10 +620,7 @@ function DailyGoalBar({
   userGoal?: UserDailyGoalDto;
   onOpenGoalModal: () => void;
 }) {
-  const progressPercentage = Math.min(
-    userGoal?.percentageCompleted ?? 0,
-    100
-  );
+  const progressPercentage = Math.min(userGoal?.percentageCompleted ?? 0, 100);
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center text-xs font-medium">
