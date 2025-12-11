@@ -14,11 +14,10 @@ public class TopicsController : BaseApiController
     }
 
     [HttpPost(Name = "CreateTopic")]
-    public async Task<ActionResult> Create([FromBody] CreateTopicDto createTopicDto)
+    public async Task<ActionResult<Guid>> Create([FromBody] CreateTopicDto createTopicDto)
     {
         var command = new CreateTopic.Command() { Title = createTopicDto.Title };
-        await Mediator.Send(command);
-        return Ok();
+        return Ok(await Mediator.Send(command));
     }
 
 }

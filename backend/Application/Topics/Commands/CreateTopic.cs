@@ -11,14 +11,14 @@ namespace Application.Topics.Commands;
 
 public class CreateTopic
 {
-    public class Command : IRequest
+    public class Command : IRequest<Guid>
     {
         public required string Title { get; set; }
     }
     
-    public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command>
+    public class Handler(AppDbContext context, IMapper mapper) : IRequestHandler<Command, Guid>
     {
-        public async Task Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(Command request, CancellationToken cancellationToken)
         {
             if (await context.Topics.AnyAsync(t => t.Title == request.Title, cancellationToken))
             {
@@ -29,6 +29,8 @@ public class CreateTopic
             await context.Topics.AddAsync(newTopic, cancellationToken);
 
             await context.SaveChangesAsync(cancellationToken);
+            
+            return newTopic.Id;
         }
     }
     
