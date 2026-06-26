@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AwardDto } from '../models/AwardDto';
+import type { MilestoneDto } from '../models/MilestoneDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -15,6 +16,16 @@ export class AwardsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/Awards',
+        });
+    }
+    /**
+     * @returns MilestoneDto OK
+     * @throws ApiError
+     */
+    public static getMyMilestones(): CancelablePromise<Array<MilestoneDto>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/Awards/milestones',
         });
     }
 }

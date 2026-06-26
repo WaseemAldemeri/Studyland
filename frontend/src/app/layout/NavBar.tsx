@@ -12,6 +12,7 @@ export default function NavBar() {
   // Define the navigation links in one central place
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
+    { to: "/insights", label: "My Journey" },
     { to: "/stats", label: "My Stats" },
   ];
 

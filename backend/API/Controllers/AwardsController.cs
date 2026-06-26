@@ -11,4 +11,10 @@ public class AwardsController : BaseApiController
     {
         return Ok(await Mediator.Send(new GetAwards.Query()));
     }
+
+    [HttpGet("milestones", Name = "GetMyMilestones")]
+    public async Task<ActionResult<List<MilestoneDto>>> GetMyMilestones()
+    {
+        return Ok(await Mediator.Send(new GetMyMilestones.Query { UserId = CurrentUserId }));
+    }
 }

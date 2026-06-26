@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import NavBar from "./layout/NavBar";
+import { AmbientPlayer } from "@/features/ambient/AmbientPlayer";
 import { Outlet, useLocation } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { fadeVariants } from "@/lib/utils/animations";
@@ -29,6 +30,7 @@ export default function MainLayout() {
           </motion.div>
         </AnimatePresence>
       </main>
+      <AmbientPlayer />
     </div>
   );
 }

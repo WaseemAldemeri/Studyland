@@ -3,6 +3,7 @@ import MainLayout from "./MainLayout";
 import Home from "@/features/home/Home";
 import Dashboard from "@/features/dashboard/Dashboard";
 import Stats from "@/features/stats/Stats";
+import Insights from "@/features/insights/Insights";
 import { NotFound } from "@/features/errors/NotFound";
 import { ServerError } from "@/features/errors/ServerError";
 import LoginPage from "@/features/auth/LoginPage";
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
+          { path: "/insights", element: <Insights /> },
           { path: "/stats", element: <Stats /> },
         ],
       },
