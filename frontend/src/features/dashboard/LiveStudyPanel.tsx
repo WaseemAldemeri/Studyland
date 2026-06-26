@@ -7,6 +7,7 @@ import {
   Coffee,
   FileEdit,
   Watch,
+  SlidersHorizontal,
 } from "lucide-react";
 
 // UI Components
@@ -44,6 +45,8 @@ import {
   type UserDailyGoalDto,
 } from "@/api/generated";
 import { CreateTopicModal } from "./CreateTopicModal";
+import { ManageTopicsModal } from "./ManageTopicsModal";
+import { useHiddenTopics } from "@/lib/hooks/useHiddenTopics";
 
 // --- PROPS ---
 interface LiveStudyPanelProps {
@@ -128,6 +131,14 @@ export function LiveStudyPanel({
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
   const [isCreateTopicOpen, setIsCreateTopicOpen] = useState(false);
+  const [isManageTopicsOpen, setIsManageTopicsOpen] = useState(false);
+
+  // Per-user "hidden from picker" topics (persisted in localStorage).
+  const { hide, unhide, unhideAll, isHidden } = useHiddenTopics();
+  const visibleTopics = useMemo(
+    () => topics.filter((t) => !isHidden(t.id)),
+    [topics, isHidden]
+  );
 
   // Derived State
   const status = currentUserPresence?.status;
@@ -135,22 +146,22 @@ export function LiveStudyPanel({
   const isOnBreak = status === "ON_BREAK";
   const isBusy = isStudying || isOnBreak;
 
-  // --- EFFECT: Default Topic ---
+  // --- EFFECT: Default Topic (prefer topics still visible in the picker) ---
   useEffect(() => {
-    if (selectedTopicId || topics.length === 0) return;
+    if (selectedTopicId || visibleTopics.length === 0) return;
     const savedId = localStorage.getItem(STORAGE_KEY);
-    const savedTopicExists = savedId && topics.some((t) => t.id === savedId);
-    if (savedTopicExists) {
+    const savedTopicVisible = savedId && visibleTopics.some((t) => t.id === savedId);
+    if (savedTopicVisible) {
       setSelectedTopicId(savedId);
     } else {
-      // 4. Fallback to Uncategorized or first available
+      // Fallback to Uncategorized or first available visible topic
       const defaultTopic =
-        topics.find((t) => t.title === "Uncategorized") || topics[0];
+        visibleTopics.find((t) => t.title === "Uncategorized") || visibleTopics[0];
       if (defaultTopic) {
         setSelectedTopicId(defaultTopic.id);
       }
     }
-  }, [topics, selectedTopicId]);
+  }, [visibleTopics, selectedTopicId]);
 
   // --- HANDLERS ---
   const handleStart = () => {
@@ -175,6 +186,16 @@ export function LiveStudyPanel({
   const handleTopicChange = (newId: string) => {
     setSelectedTopicId(newId);
     localStorage.setItem(STORAGE_KEY, newId);
+  };
+
+  // Hide a topic from the picker; if it was the active selection, move to the
+  // next visible topic so the picker never shows an empty/hidden value.
+  const handleHideTopic = (id: string) => {
+    hide(id);
+    if (selectedTopicId === id) {
+      const fallback = visibleTopics.find((t) => t.id !== id);
+      setSelectedTopicId(fallback ? fallback.id : null);
+    }
   };
 
   const handleManualBreak = async (duration: number) => {
@@ -217,7 +238,12 @@ export function LiveStudyPanel({
                   <SelectValue placeholder="Select a topic..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {topics.map((t) => (
+                  {visibleTopics.length === 0 && (
+                    <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                      No topics in your picker.
+                    </p>
+                  )}
+                  {visibleTopics.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {t.title}
                     </SelectItem>
@@ -226,12 +252,22 @@ export function LiveStudyPanel({
                   <button
                     onClick={(e) => {
                         // Prevent the select from consuming the click immediately
-                        e.preventDefault(); 
+                        e.preventDefault();
                         setIsCreateTopicOpen(true);
                     }}
                     className="text-primary text-sm p-2 w-full rounded-md cursor-pointer hover:bg-primary/40"
                   >
                     Create Topic
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsManageTopicsOpen(true);
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-md p-2 text-sm text-muted-foreground cursor-pointer hover:bg-primary/40"
+                  >
+                    <SlidersHorizontal className="size-3.5" />
+                    Manage topics
                   </button>
                 </SelectContent>
               </Select>
@@ -397,13 +433,22 @@ export function LiveStudyPanel({
           onClose={() => setIsBreakModalOpen(false)}
           onConfirm={handleManualBreak}
         />
-        <CreateTopicModal 
-            isOpen={isCreateTopicOpen} 
+        <CreateTopicModal
+            isOpen={isCreateTopicOpen}
             onClose={() => setIsCreateTopicOpen(false)}
             onSuccess={(newId) => {
               // Automatically select the new topic
               handleTopicChange(newId);
             }}
+        />
+        <ManageTopicsModal
+          isOpen={isManageTopicsOpen}
+          onClose={() => setIsManageTopicsOpen(false)}
+          topics={topics}
+          isHidden={isHidden}
+          onHide={handleHideTopic}
+          onUnhide={unhide}
+          onUnhideAll={unhideAll}
         />
       </CardContent>
     </Card>
